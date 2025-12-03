@@ -1,206 +1,277 @@
-#include <algorithm> // For std::max
 #include <Rcpp.h>
-using namespace Rcpp;
+#include <vector>
+#include <algorithm>
+#include <omp.h>
 
-// --- Matrix Arithmetic Helper Functions ---
+// --- Native C++ Core ---
+// This entire section is pure C++ and has no knowledge of R or Rcpp.
+// This is the key to making the parallel code thread-safe.
+// We use std::vector<double> to represent matrices in row-major order.
 
-// Helper function for matrix addition
-// Now takes const references (&) for efficiency (avoids copies)
-NumericMatrix matrix_add(const NumericMatrix& A, const NumericMatrix& B) {
-  int n = A.nrow();
-  int m = A.ncol();
-  NumericMatrix C(n, m);
+// Forward declaration for the native recursive function
+void native_strassen_recursive(const std::vector<double>& A, const std::vector<double>& B, std::vector<double>& C, int n, int threshold, bool parallelize);
 
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < m; j++) {
-      C(i, j) = A(i, j) + B(i, j);
+// Native Naive Multiplication
+void native_naive_multiply(const std::vector<double>& A, const std::vector<double>& B, std::vector<double>& C, int n) {
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            double sum = 0.0;
+            for (int k = 0; k < n; ++k) {
+                sum += A[i * n + k] * B[k * n + j];
+            }
+            C[i * n + j] = sum;
+        }
     }
-  }
-  return C;
 }
 
-// Helper function for matrix subtraction
-// Now takes const references (&) for efficiency
-NumericMatrix matrix_subtract(const NumericMatrix& A, const NumericMatrix& B) {
-  int n = A.nrow();
-  int m = A.ncol();
-  NumericMatrix C(n, m);
-
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < m; j++) {
-      C(i, j) = A(i, j) - B(i, j);
+// Native Matrix Addition/Subtraction
+void native_matrix_op(const std::vector<double>& A, const std::vector<double>& B, std::vector<double>& C, int n, bool add) {
+    for (int i = 0; i < n * n; ++i) {
+        C[i] = add ? (A[i] + B[i]) : (A[i] - B[i]);
     }
-  }
-  return C;
 }
 
-// --- Helper function to find the next power of 2 ---
-// (Not exported to R)
+// Native Strassen's Algorithm
+void native_strassen_recursive(const std::vector<double>& A, const std::vector<double>& B, std::vector<double>& C, int n, int threshold, bool parallelize) {
+    if (n <= threshold) {
+        native_naive_multiply(A, B, C, n);
+        return;
+    }
+
+    int mid = n / 2;
+    int new_size = mid * mid;
+
+    std::vector<double> A11(new_size), A12(new_size), A21(new_size), A22(new_size);
+    std::vector<double> B11(new_size), B12(new_size), B21(new_size), B22(new_size);
+
+    for (int i = 0; i < mid; ++i) {
+        for (int j = 0; j < mid; ++j) {
+            A11[i * mid + j] = A[i * n + j];
+            A12[i * mid + j] = A[i * n + j + mid];
+            A21[i * mid + j] = A[(i + mid) * n + j];
+            A22[i * mid + j] = A[(i + mid) * n + j + mid];
+
+            B11[i * mid + j] = B[i * n + j];
+            B12[i * mid + j] = B[i * n + j + mid];
+            B21[i * mid + j] = B[(i + mid) * n + j];
+            B22[i * mid + j] = B[(i + mid) * n + j + mid];
+        }
+    }
+
+    std::vector<double> M1(new_size), M2(new_size), M3(new_size), M4(new_size), M5(new_size), M6(new_size), M7(new_size);
+
+    if (parallelize) {
+        std::vector<double> S1(new_size), S2(new_size), S3(new_size), S4(new_size), S5(new_size), S6(new_size), S7(new_size), S8(new_size), S9(new_size), S10(new_size);
+        native_matrix_op(A11, A22, S1, mid, true);
+        native_matrix_op(B11, B22, S2, mid, true);
+        native_matrix_op(A21, A22, S3, mid, true);
+        native_matrix_op(B12, B22, S4, mid, false);
+        native_matrix_op(B21, B11, S5, mid, false);
+        native_matrix_op(A11, A12, S6, mid, true);
+        native_matrix_op(A21, A11, S7, mid, false);
+        native_matrix_op(B11, B12, S8, mid, true);
+        native_matrix_op(A12, A22, S9, mid, false);
+        native_matrix_op(B21, B22, S10, mid, true);
+
+        #pragma omp parallel
+        {
+            #pragma omp single
+            {
+                #pragma omp task
+                native_strassen_recursive(S1, S2, M1, mid, threshold, false);
+                #pragma omp task
+                native_strassen_recursive(S3, B11, M2, mid, threshold, false);
+                #pragma omp task
+                native_strassen_recursive(A11, S4, M3, mid, threshold, false);
+                #pragma omp task
+                native_strassen_recursive(A22, S5, M4, mid, threshold, false);
+                #pragma omp task
+                native_strassen_recursive(S6, B22, M5, mid, threshold, false);
+                #pragma omp task
+                native_strassen_recursive(S7, S8, M6, mid, threshold, false);
+                #pragma omp task
+                native_strassen_recursive(S9, S10, M7, mid, threshold, false);
+            }
+        }
+    } else {
+        std::vector<double> S1(new_size), S2(new_size);
+        native_matrix_op(A11, A22, S1, mid, true);
+        native_matrix_op(B11, B22, S2, mid, true);
+        native_strassen_recursive(S1, S2, M1, mid, threshold, false);
+
+        native_matrix_op(A21, A22, S1, mid, true);
+        native_strassen_recursive(S1, B11, M2, mid, threshold, false);
+
+        native_matrix_op(B12, B22, S1, mid, false);
+        native_strassen_recursive(A11, S1, M3, mid, threshold, false);
+
+        native_matrix_op(B21, B11, S1, mid, false);
+        native_strassen_recursive(A22, S1, M4, mid, threshold, false);
+
+        native_matrix_op(A11, A12, S1, mid, true);
+        native_strassen_recursive(S1, B22, M5, mid, threshold, false);
+
+        native_matrix_op(A21, A11, S1, mid, false);
+        native_matrix_op(B11, B12, S2, mid, true);
+        native_strassen_recursive(S1, S2, M6, mid, threshold, false);
+
+        native_matrix_op(A12, A22, S1, mid, false);
+        native_matrix_op(B21, B22, S2, mid, true);
+        native_strassen_recursive(S1, S2, M7, mid, threshold, false);
+    }
+
+    std::vector<double> C11(new_size), C12(new_size), C21(new_size), C22(new_size);
+    native_matrix_op(M1, M4, C11, mid, true);
+    native_matrix_op(C11, M5, C11, mid, false);
+    native_matrix_op(C11, M7, C11, mid, true);
+
+    native_matrix_op(M3, M5, C12, mid, true);
+
+    native_matrix_op(M2, M4, C21, mid, true);
+
+    native_matrix_op(M1, M3, C22, mid, true);
+
+    native_matrix_op(C22, M2, C22, mid, false);
+    native_matrix_op(C22, M6, C22, mid, true);
+
+    for (int i = 0; i < mid; ++i) {
+        for (int j = 0; j < mid; ++j) {
+            C[i * n + j] = C11[i * mid + j];
+            C[i * n + j + mid] = C12[i * mid + j];
+            C[(i + mid) * n + j] = C21[i * mid + j];
+            C[(i + mid) * n + j + mid] = C22[i * mid + j];
+        }
+    }
+}
+
+// --- Rcpp Wrapper Functions ---
+// These are the bridges between R and the native C++ code.
+
+// Helper to find the next power of 2
 int next_power_of_2(int n) {
-  // If n is already a power of 2, return it
-  if (n > 0 && (n & (n - 1)) == 0) {
-    return n;
-  }
-
-  // Decrement n by 1 to handle cases where n is already a power of 2
-  // This is a common bit-twiddling trick.
-  n--;
-
-  // Set all bits to the right of the most significant bit to 1
-  n |= n >> 1;
-  n |= n >> 2;
-  n |= n >> 4;
-  n |= n >> 8;
-  n |= n >> 16; // Works for 32-bit integers
-
-  // Increment by 1 to get the next power of 2
-  n++;
-
-  return n;
+  if (n > 0 && (n & (n - 1)) == 0) return n;
+  int p = 1;
+  while (p < n) p <<= 1;
+  return p;
 }
 
+// Generic internal wrapper to reduce code duplication
+Rcpp::NumericMatrix strassen_internal_wrapper(Rcpp::NumericMatrix A, Rcpp::NumericMatrix B, int threshold, bool parallelize) {
+    int n_orig = A.nrow();
+    int p_orig = A.ncol();
+    int m_orig = B.ncol();
 
-// --- Strassen's Algorithm (Internal) ---
+    if (p_orig != B.nrow()) {
+        Rcpp::stop("Incompatible matrix dimensions.");
+    }
 
-// This is the internal C++ recursive function.
-// It is NOT exported to R.
-// It takes const references for efficiency during recursion.
-NumericMatrix strassen_recursive(const NumericMatrix& A, const NumericMatrix& B) {
+    int max_dim = std::max({n_orig, p_orig, m_orig});
+    int padded_size = next_power_of_2(max_dim);
 
-  int n = A.nrow();
+    std::vector<double> A_pad(padded_size * padded_size, 0.0);
+    std::vector<double> B_pad(padded_size * padded_size, 0.0);
 
-  // --- Base Case ---
-  if (n == 1) {
-    NumericMatrix C(1, 1);
-    C(0, 0) = A(0, 0) * B(0, 0);
+    for (int i = 0; i < n_orig; ++i) {
+        for (int j = 0; j < p_orig; ++j) {
+            A_pad[i * padded_size + j] = A(i, j);
+        }
+    }
+    for (int i = 0; i < p_orig; ++i) {
+        for (int j = 0; j < m_orig; ++j) {
+            B_pad[i * padded_size + j] = B(i, j);
+        }
+    }
+
+    std::vector<double> C_pad(padded_size * padded_size);
+    native_strassen_recursive(A_pad, B_pad, C_pad, padded_size, threshold, parallelize);
+
+    Rcpp::NumericMatrix C(n_orig, m_orig);
+    for (int i = 0; i < n_orig; ++i) {
+        for (int j = 0; j < m_orig; ++j) {
+            C(i, j) = C_pad[i * padded_size + j];
+        }
+    }
+
     return C;
-  }
-
-  // --- Recursive Step ---
-
-  // Find the midpoint
-  int mid = n / 2;
-
-  // 1. Partition matrices A and B
-  //
-  // We manually create new matrices and copy the values.
-  // This avoids all 'const' and submatrix 'view' errors.
-  //
-  NumericMatrix A11(mid, mid); NumericMatrix A12(mid, mid);
-  NumericMatrix A21(mid, mid); NumericMatrix A22(mid, mid);
-  NumericMatrix B11(mid, mid); NumericMatrix B12(mid, mid);
-  NumericMatrix B21(mid, mid); NumericMatrix B22(mid, mid);
-
-  for (int i = 0; i < mid; i++) {
-    for (int j = 0; j < mid; j++) {
-      // Partition A
-      A11(i, j) = A(i, j);
-      A12(i, j) = A(i, j + mid);
-      A21(i, j) = A(i + mid, j);
-      A22(i, j) = A(i + mid, j + mid);
-
-      // Partition B
-      B11(i, j) = B(i, j);
-      B12(i, j) = B(i, j + mid);
-      B21(i, j) = B(i + mid, j);
-      B22(i, j) = B(i + mid, j + mid);
-    }
-  }
-
-  // 2. Calculate the 7 products (M1-M7) recursively
-  // (Now calling this internal 'strassen_recursive' function)
-  NumericMatrix M1 = strassen_recursive(matrix_add(A11, A22), matrix_add(B11, B22));
-  NumericMatrix M2 = strassen_recursive(matrix_add(A21, A22), B11);
-  NumericMatrix M3 = strassen_recursive(A11, matrix_subtract(B12, B22));
-  NumericMatrix M4 = strassen_recursive(A22, matrix_subtract(B21, B11));
-  NumericMatrix M5 = strassen_recursive(matrix_add(A11, A12), B22);
-  NumericMatrix M6 = strassen_recursive(matrix_subtract(A21, A11), matrix_add(B11, B12));
-  NumericMatrix M7 = strassen_recursive(matrix_subtract(A12, A22), matrix_add(B21, B22));
-
-  // 3. Calculate result sub-matrices (C11, C12, C21, C22)
-  NumericMatrix C11 = matrix_add(matrix_subtract(matrix_add(M1, M4), M5), M7);
-  NumericMatrix C12 = matrix_add(M3, M5);
-  NumericMatrix C21 = matrix_add(M2, M4);
-  NumericMatrix C22 = matrix_add(matrix_subtract(matrix_add(M1, M3), M2), M6);
-
-  // 4. Combine sub-matrices into the final result matrix C
-  NumericMatrix C(n, n);
-  for (int i = 0; i < mid; i++) {
-    for (int j = 0; j < mid; j++) {
-      C(i, j) = C11(i, j);
-      C(i, j + mid) = C12(i, j);
-      C(i + mid, j) = C21(i, j);
-      C(i + mid, j + mid) = C22(i, j);
-    }
-  }
-
-  return C;
 }
 
-
-// --- Rcpp Exported Wrapper ---
-// This is the ONLY function R will see.
-// It handles padding and trimming for arbitrary matrix sizes.
+//' Parallel Strassen's Matrix Multiplication
+//'
+//' Computes the matrix product of two matrices using a parallelized, hybrid
+//' version of Strassen's algorithm. This is the fastest implementation in the
+//' package for large matrices. It uses a threshold to switch to a naive
+//' algorithm for smaller sub-problems and OpenMP to parallelize the recursive calls.
+//'
+//' @param A A numeric matrix.
+//' @param B A numeric matrix.
+//' @param threshold The matrix size at which the algorithm switches from Strassen's
+//'   recursion to a naive multiplication. Defaults to 64.
+//' @return The matrix product of A and B.
+//' @export
 // [[Rcpp::export]]
-NumericMatrix strassen_rcpp(NumericMatrix A, NumericMatrix B) {
+Rcpp::NumericMatrix strassen_parallel(Rcpp::NumericMatrix A, Rcpp::NumericMatrix B, int threshold = 64) {
+    return strassen_internal_wrapper(A, B, threshold, true);
+}
 
-  // 1. Get dimensions
-  int n = A.nrow();
-  int p = A.ncol();
-  int m = B.ncol();
+//' Hybrid Strassen's Matrix Multiplication (Sequential)
+//'
+//' Computes the matrix product of two matrices using a sequential, hybrid
+//' version of Strassen's algorithm. It uses a threshold to switch to a naive
+//' algorithm for smaller sub-problems but does not use parallel processing.
+//'
+//' @param A A numeric matrix.
+//' @param B A numeric matrix.
+//' @param threshold The matrix size at which the algorithm switches from Strassen's
+//'   recursion to a naive multiplication. Defaults to 64.
+//' @return The matrix product of A and B.
+//' @export
+// [[Rcpp::export]]
+Rcpp::NumericMatrix strassen_hybrid(Rcpp::NumericMatrix A, Rcpp::NumericMatrix B, int threshold = 64) {
+    return strassen_internal_wrapper(A, B, threshold, false);
+}
 
-  // Dimension check
-  if (p != B.nrow()) {
-    stop("Incompatible matrix dimensions: ncol(A) must equal nrow(B).");
-  }
+//' Pure Strassen's Matrix Multiplication (Recursive)
+//'
+//' Computes the matrix product of two matrices using the classic, pure
+//' recursive Strassen's algorithm. This function is provided for educational
+//' and benchmarking purposes to demonstrate the high overhead of recursion
+//' without a hybrid strategy. It recurses down to a 1x1 matrix.
+//'
+//' @param A A numeric matrix.
+//' @param B A numeric matrix.
+//' @return The matrix product of A and B.
+//' @export
+// [[Rcpp::export]]
+Rcpp::NumericMatrix strassen_pure_recursive(Rcpp::NumericMatrix A, Rcpp::NumericMatrix B) {
+    return strassen_internal_wrapper(A, B, 1, false);
+}
 
-  // 2. Find max dimension
-  // We use std::max with an initializer list {n, p, m}
-  int max_dim = std::max({n, p, m});
-
-  // 3. Find next power of 2
-  int k = next_power_of_2(max_dim);
-
-  // --- Handle the trivial 1x1 base case directly ---
-  // This avoids padding a 1x1 matrix up to 2x2 and back down
-  if (k == 1 && n == 1 && p == 1 && m == 1) {
-    NumericMatrix C(1, 1);
-    C(0, 0) = A(0, 0) * B(0, 0);
+//' Naive Matrix Multiplication (C++)
+//'
+//' Computes the matrix product of two matrices using a simple, three-loop
+//' naive algorithm in C++. This function is provided for educational and
+//' benchmarking purposes.
+//'
+//' @param A A numeric matrix.
+//' @param B A numeric matrix.
+//' @return The matrix product of A and B.
+//' @export
+// [[Rcpp::export]]
+Rcpp::NumericMatrix naive_rcpp_multiply(Rcpp::NumericMatrix A, Rcpp::NumericMatrix B) {
+    int n = A.nrow();
+    int m = B.ncol();
+    if (A.ncol() != B.nrow()) {
+        Rcpp::stop("Incompatible matrix dimensions.");
+    }
+    Rcpp::NumericMatrix C(n, m);
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < m; ++j) {
+            double sum = 0.0;
+            for (int k = 0; k < A.ncol(); ++k) {
+                sum += A(i, k) * B(k, j);
+            }
+            C(i, j) = sum;
+        }
+    }
     return C;
-  }
-
-  // 4. Create new k x k padded matrices (initialized to zero)
-  NumericMatrix A_pad(k, k);
-  NumericMatrix B_pad(k, k);
-
-  // 5. Copy A into A_pad
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < p; j++) {
-      A_pad(i, j) = A(i, j);
-    }
-  }
-
-  // 6. Copy B into B_pad
-  for (int i = 0; i < p; i++) {
-    for (int j = 0; j < m; j++) {
-      B_pad(i, j) = B(i, j);
-    }
-  }
-
-  // 7. Call the recursive engine
-  //
-  NumericMatrix C_pad = strassen_recursive(A_pad, B_pad);
-
-  // 8. Create the final result matrix
-  NumericMatrix C(n, m);
-
-  // 9. Copy (trim) the result from C_pad into C
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < m; j++) {
-      C(i, j) = C_pad(i, j);
-    }
-  }
-
-  // 10. Return the final, trimmed matrix
-  return C;
 }

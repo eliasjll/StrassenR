@@ -1,0 +1,25 @@
+# This file configures the C++ compiler for R.
+# We are setting it up to use the LLVM/Clang compiler from Homebrew,
+# which includes support for OpenMP on macOS.
+
+# --- Get LLVM location from Homebrew ---
+# This command finds where Homebrew installed the llvm package.
+# On Apple Silicon, this is usually /opt/homebrew/opt/llvm
+# On Intel Macs, this is usually /usr/local/opt/llvm
+LLVM_DIR = $(shell brew --prefix llvm)
+
+# --- Set the C and C++ compilers ---
+# We explicitly tell R to use the clang and clang++ from Homebrew's LLVM.
+CC = $(LLVM_DIR)/bin/clang
+CXX = $(LLVM_DIR)/bin/clang++
+
+# --- Set Compiler and Linker Flags for OpenMP ---
+# PKG_CXXFLAGS adds compiler flags.
+# -I$(LLVM_DIR)/include: Tells the compiler where to find header files (like omp.h).
+# -fopenmp: Enables OpenMP support.
+PKG_CXXFLAGS = -I$(LLVM_DIR)/include -fopenmp
+
+# PKG_LIBS adds linker flags.
+# -L$(LLVM_DIR)/lib: Tells the linker where to find library files.
+# -lomp: Links against the OpenMP library (libomp).
+PKG_LIBS = -L$(LLVM_DIR)/lib -lomp

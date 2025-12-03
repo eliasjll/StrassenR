@@ -10,33 +10,62 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// add_one
-int add_one(int x);
-RcppExport SEXP _StrassenR_add_one(SEXP xSEXP) {
+// strassen_parallel
+Rcpp::NumericMatrix strassen_parallel(Rcpp::NumericMatrix A, Rcpp::NumericMatrix B, int threshold);
+RcppExport SEXP _StrassenR_strassen_parallel(SEXP ASEXP, SEXP BSEXP, SEXP thresholdSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(add_one(x));
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type A(ASEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type B(BSEXP);
+    Rcpp::traits::input_parameter< int >::type threshold(thresholdSEXP);
+    rcpp_result_gen = Rcpp::wrap(strassen_parallel(A, B, threshold));
     return rcpp_result_gen;
 END_RCPP
 }
-// strassen_rcpp
-NumericMatrix strassen_rcpp(NumericMatrix A, NumericMatrix B);
-RcppExport SEXP _StrassenR_strassen_rcpp(SEXP ASEXP, SEXP BSEXP) {
+// strassen_hybrid
+Rcpp::NumericMatrix strassen_hybrid(Rcpp::NumericMatrix A, Rcpp::NumericMatrix B, int threshold);
+RcppExport SEXP _StrassenR_strassen_hybrid(SEXP ASEXP, SEXP BSEXP, SEXP thresholdSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type B(BSEXP);
-    rcpp_result_gen = Rcpp::wrap(strassen_rcpp(A, B));
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type A(ASEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type B(BSEXP);
+    Rcpp::traits::input_parameter< int >::type threshold(thresholdSEXP);
+    rcpp_result_gen = Rcpp::wrap(strassen_hybrid(A, B, threshold));
+    return rcpp_result_gen;
+END_RCPP
+}
+// strassen_pure_recursive
+Rcpp::NumericMatrix strassen_pure_recursive(Rcpp::NumericMatrix A, Rcpp::NumericMatrix B);
+RcppExport SEXP _StrassenR_strassen_pure_recursive(SEXP ASEXP, SEXP BSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type A(ASEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type B(BSEXP);
+    rcpp_result_gen = Rcpp::wrap(strassen_pure_recursive(A, B));
+    return rcpp_result_gen;
+END_RCPP
+}
+// naive_rcpp_multiply
+Rcpp::NumericMatrix naive_rcpp_multiply(Rcpp::NumericMatrix A, Rcpp::NumericMatrix B);
+RcppExport SEXP _StrassenR_naive_rcpp_multiply(SEXP ASEXP, SEXP BSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type A(ASEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type B(BSEXP);
+    rcpp_result_gen = Rcpp::wrap(naive_rcpp_multiply(A, B));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_StrassenR_add_one", (DL_FUNC) &_StrassenR_add_one, 1},
-    {"_StrassenR_strassen_rcpp", (DL_FUNC) &_StrassenR_strassen_rcpp, 2},
+    {"_StrassenR_strassen_parallel", (DL_FUNC) &_StrassenR_strassen_parallel, 3},
+    {"_StrassenR_strassen_hybrid", (DL_FUNC) &_StrassenR_strassen_hybrid, 3},
+    {"_StrassenR_strassen_pure_recursive", (DL_FUNC) &_StrassenR_strassen_pure_recursive, 2},
+    {"_StrassenR_naive_rcpp_multiply", (DL_FUNC) &_StrassenR_naive_rcpp_multiply, 2},
     {NULL, NULL, 0}
 };
 
