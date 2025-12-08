@@ -25,6 +25,16 @@
       <ul class="nav navbar-nav"><li>
   <a href="reference/index.html">Reference</a>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Articles
+
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu"><li>
+      <a href="articles/tutorial.html">StrassenR: A Tutorial</a>
+    </li>
+  </ul></li>
       </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
@@ -39,17 +49,182 @@
 
 <div id="strassenr-development-log" class="section level1">
 
-<p>This log documents the development of the StrassenR package, with a focus on how GenAI was used to assist in the process.</p>
-<div class="section level2">
-<h2 id="week-1-oct-11---17-project-setup-and-foundation">Week 1 (Oct 11 - 17): Project Setup and Foundation<a class="anchor" aria-label="anchor" href="#week-1-oct-11---17-project-setup-and-foundation"></a></h2>
+<p>This log documents my development of the StrassenR package, with a focus on how I used GenAI to help in the process.</p>
+<hr><div class="section level2">
+<h2 id="week-1-oct-11---17--project-setup-and-foundation">Week 1: Oct 11 - 17 | Project Setup and Foundation<a class="anchor" aria-label="anchor" href="#week-1-oct-11---17--project-setup-and-foundation"></a></h2>
 <div class="section level3">
-<h3 id="date-2025-11-10">Date: 2025-11-10<a class="anchor" aria-label="anchor" href="#date-2025-11-10"></a></h3>
-<p><strong>Goal:</strong> Complete the project setup, including the GitHub repository, package structure, Rcpp installation, and development log.</p>
-<p><strong>GenAI Prompt &amp; Summary:</strong></p>
-<p>I asked the AI assistant: “give me step by step instructions to help me complete the goals I have for this week ‘Week 1 (Oct 11 - 17): Project Setup and Foundation’”</p>
-<p>The assistant guided me through the following steps: 1. <strong>Git Repository:</strong> It confirmed my project was already a git repository, helped me update my <code>.gitignore</code> file to exclude unnecessary files like <code>.DS_Store</code> and backups, and then provided the commands to stage, commit, and push my files to GitHub. 2. <strong>Package Structure:</strong> It confirmed that my existing directory structure (<code>R/</code>, <code>src/</code>, <code>DESCRIPTION</code>, etc.) was already a valid R package structure. 3. <strong>Rcpp Installation:</strong> It provided the R command to install <code>Rcpp</code> and <code>devtools</code>. 4. <strong>Rcpp Verification:</strong> To ensure Rcpp was working, the assistant generated a simple “Hello, World!” C++ function, created the <code>src/hello_world.cpp</code> file, and gave me the R command (<code><a href="https://rdrr.io/pkg/Rcpp/man/sourceCpp.html" class="external-link">Rcpp::sourceCpp()</a></code>) to compile and run it. 5. <strong>Development Log:</strong> Finally, it created this <code>DEVLOG.md</code> file and provided this summary of our interaction as the first entry.</p>
-<p><strong>Outcome:</strong> All initial project setup goals for the week are complete. The project is on GitHub, the package structure is in place, Rcpp is working, and the development log has been started.</p>
+<h3 id="goals-for-this-week">Goals for this Week:<a class="anchor" aria-label="anchor" href="#goals-for-this-week"></a></h3>
+<ul><li>
+<strong>Goal 1:</strong> Finalize the GitHub repository setup, including <code>.gitignore</code>.</li>
+<li>
+<strong>Goal 2:</strong> Confirm my R package structure and install necessary tools like <code>Rcpp</code> and <code>devtools</code>.</li>
+<li>
+<strong>Goal 3:</strong> Verify my Rcpp compilation toolchain with a “Hello, World!” example.</li>
+<li>
+<strong>Goal 4:</strong> Create and structure this development log.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="weekly-summary">Weekly Summary<a class="anchor" aria-label="anchor" href="#weekly-summary"></a></h3>
+<ul><li>
+<strong>Progress:</strong> I got all the initial project setup goals done this week. I pushed the project to GitHub, confirmed the R package structure was correct, and installed the necessary tools.</li>
+<li>
+<strong>Key Learning:</strong> To make sure my C++ compiler was working with R, I had the AI generate a simple ‘Hello, World!’ test, which compiled and ran perfectly. The AI was helpful for getting the specific git and R commands right, which let me get the environment set up quickly and confirm everything was working.</li>
+<li>
+<strong>Challenges/Blockers:</strong> I didn’t run into any significant blockers this week; the setup process was smooth.</li>
+</ul><hr></div>
 </div>
+<div class="section level2">
+<h2 id="week-2-oct-18---24--baseline-implementation-in-r">Week 2: Oct 18 - 24 | Baseline Implementation in R<a class="anchor" aria-label="anchor" href="#week-2-oct-18---24--baseline-implementation-in-r"></a></h2>
+<div class="section level3">
+<h3 id="goals-for-this-week-1">Goals for this Week:<a class="anchor" aria-label="anchor" href="#goals-for-this-week-1"></a></h3>
+<ul><li>
+<strong>Goal 1:</strong> Implement the naive, triple-nested loop (O(n³)) matrix multiplication function in R as a baseline.</li>
+<li>
+<strong>Goal 2:</strong> Implement a pure R version of Strassen’s algorithm, focusing on the recursive logic for the “perfect” case (2^n * 2^n matrices).</li>
+</ul></div>
+<div class="section level3">
+<h3 id="weekly-summary-1">Weekly Summary<a class="anchor" aria-label="anchor" href="#weekly-summary-1"></a></h3>
+<ul><li>
+<strong>Progress:</strong> I implemented the first two core functions in pure R: <code>naive_multiply</code> as a simple O(n³) baseline, and <code>strassen_r</code> for the recursive logic. I tested both against R’s built-in <code>%*%</code> and confirmed they were correct for small matrices.</li>
+<li>
+<strong>Key Learning:</strong> I asked the AI for help structuring the <code>strassen_r</code> function for the simplified case of power-of-two square matrices. It gave me a great starting point that laid out the main steps: partitioning the matrices, calculating the 7 products recursively, and then combining the results. This was a big help in getting the core logic down.</li>
+<li>
+<strong>Challenges/Blockers:</strong> No major blockers. Focusing on the “perfect” case for the Strassen implementation made it much easier to get started without worrying about edge cases like padding.</li>
+</ul><hr></div>
+</div>
+<div class="section level2">
+<h2 id="week-3-oct-25---31--core-rcpp-implementation">Week 3: Oct 25 - 31 | Core Rcpp Implementation<a class="anchor" aria-label="anchor" href="#week-3-oct-25---31--core-rcpp-implementation"></a></h2>
+<div class="section level3">
+<h3 id="goals-for-this-week-2">Goals for this Week:<a class="anchor" aria-label="anchor" href="#goals-for-this-week-2"></a></h3>
+<ul><li>
+<strong>Goal 1:</strong> Use GenAI to translate the pure R Strassen logic into a high-performance Rcpp function.</li>
+<li>
+<strong>Goal 2:</strong> Debug the C++ implementation with AI assistance to handle the “power of two” square matrix case correctly.</li>
+<li>
+<strong>Goal 3:</strong> Document the AI prompts and the iterative debugging process.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="weekly-summary-2">Weekly Summary<a class="anchor" aria-label="anchor" href="#weekly-summary-2"></a></h3>
+<ul><li>
+<strong>Progress:</strong> I successfully translated the R Strassen function into C++ using Rcpp. After a lot of debugging, the C++ version now compiles and runs correctly for the simple case.</li>
+<li>
+<strong>Key Learning:</strong> This week was a great lesson in the differences between R and C++. The AI’s first direct translation failed because it wrote C++ code as if it were R, using <code>+</code> for matrix addition and R-style <code>[]</code> subsetting. This was a good example of an AI “hallucination.” The real work was in the debugging cycle: I’d get a compiler error, feed it back to the AI, and we’d work through it. This process led me to write my own C++ helper functions for matrix math and use manual loops for partitioning.</li>
+<li>
+<strong>Challenges/Blockers:</strong> The main challenge was getting the first C++ version to compile. The AI’s initial, incorrect assumptions about C++ syntax meant I had to guide it through the debugging process. It was a good reminder of the need for human oversight.</li>
+</ul><hr></div>
+</div>
+<div class="section level2">
+<h2 id="week-4-nov-1---7--generalization-and-progress-report">Week 4: Nov 1 - 7 | Generalization and Progress Report<a class="anchor" aria-label="anchor" href="#week-4-nov-1---7--generalization-and-progress-report"></a></h2>
+<div class="section level3">
+<h3 id="goals-for-this-week-3">Goals for this Week:<a class="anchor" aria-label="anchor" href="#goals-for-this-week-3"></a></h3>
+<ul><li>
+<strong>Goal 1:</strong> Add matrix padding and trimming logic to the Rcpp function to handle matrices of arbitrary and non-square dimensions.</li>
+<li>
+<strong>Goal 2:</strong> Write comprehensive tests to ensure the generalized function is numerically accurate.</li>
+<li>
+<strong>Goal 3:</strong> Write and submit the project progress report.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="weekly-summary-3">Weekly Summary<a class="anchor" aria-label="anchor" href="#weekly-summary-3"></a></h3>
+<ul><li>
+<strong>Progress:</strong> I successfully generalized the C++ Strassen implementation to handle any matrix size, including non-square matrices. This involved creating a wrapper function that pads the matrices with zeros to the next power of two, runs the core recursive algorithm, and then trims the result back to the correct dimensions. I also completed and submitted my progress report.</li>
+<li>
+<strong>Key Learning:</strong> This week was about making the “textbook” algorithm practical. I learned how to implement the padding/trimming logic, which is essential for making Strassen’s algorithm a useful, general-purpose tool. It was a good lesson in how theoretical algorithms need extra engineering to become robust.</li>
+<li>
+<strong>Challenges/Blockers:</strong> The main challenge was getting the indexing correct while copying the original matrices into the larger, padded versions and then extracting the final result. It was very easy to make off-by-one errors, and I had to write several tests to find and fix these bugs to ensure the output was numerically accurate.</li>
+</ul><hr></div>
+</div>
+<div class="section level2">
+<h2 id="week-5-nov-10---16--hybrid-algorithm-and-benchmarking">Week 5: Nov 10 - 16 | Hybrid Algorithm and Benchmarking<a class="anchor" aria-label="anchor" href="#week-5-nov-10---16--hybrid-algorithm-and-benchmarking"></a></h2>
+<div class="section level3">
+<h3 id="goals-for-this-week-4">Goals for this Week:<a class="anchor" aria-label="anchor" href="#goals-for-this-week-4"></a></h3>
+<ul><li>
+<strong>Goal 1:</strong> Implement a fast, baseline C++ naive multiply function (<code>naive_cpp_multiply</code>).</li>
+<li>
+<strong>Goal 2:</strong> Modify the Strassen Rcpp function to use a <code>THRESHOLD</code> and switch to the naive C++ function for base cases.</li>
+<li>
+<strong>Goal 3:</strong> Write a benchmarking script using the <code>microbenchmark</code> package.</li>
+<li>
+<strong>Goal 4:</strong> Run benchmarks to find the optimal crossover point for the threshold.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="weekly-summary-4">Weekly Summary<a class="anchor" aria-label="anchor" href="#weekly-summary-4"></a></h3>
+<ul><li>
+<strong>Progress:</strong> I successfully implemented the hybrid version of the Strassen algorithm in C++. This involved first creating a baseline <code>naive_cpp_multiply</code> function, then modifying the main Strassen function to call it for sub-problems smaller than a given <code>THRESHOLD</code>. I then wrote the <code>threshold_tuning_plot.R</code> script to benchmark the performance across different thresholds and found that <strong>64</strong> was the optimal crossover point for a 1024x1024 matrix.</li>
+<li>
+<strong>Key Learning:</strong> This week was all about performance tuning. Using the <code>microbenchmark</code> package was essential for getting reliable timing data. The results clearly showed the U-shaped performance curve I was expecting, which validated the theory that a hybrid approach is necessary. It was satisfying to see the data prove that for small matrices, the overhead of Strassen’s recursion is more costly than a simple, brute-force loop.</li>
+<li>
+<strong>Challenges/Blockers:</strong> The main challenge was structuring the benchmarking script to loop through the different thresholds and capture the results cleanly. It took a few tries to get the <code>ggplot2</code> code right to automatically highlight the optimal point on the graph.</li>
+</ul><hr></div>
+</div>
+<div class="section level2">
+<h2 id="week-6-nov-17---23--parallelization-and-final-benchmarking">Week 6: Nov 17 - 23 | Parallelization and Final Benchmarking<a class="anchor" aria-label="anchor" href="#week-6-nov-17---23--parallelization-and-final-benchmarking"></a></h2>
+<div class="section level3">
+<h3 id="goals-for-this-week-5">Goals for this Week:<a class="anchor" aria-label="anchor" href="#goals-for-this-week-5"></a></h3>
+<ul><li>
+<strong>Goal 1:</strong> Create a <code>src/Makevars</code> file to enable OpenMP.</li>
+<li>
+<strong>Goal 2:</strong> Add OpenMP directives to parallelize the 7 recursive calls (M1-M7).</li>
+<li>
+<strong>Goal 3:</strong> Run final performance comparisons comparing all implemented algorithms.</li>
+<li>
+<strong>Goal 4:</strong> Generate plots to visualize the results and identify the final crossover point.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="weekly-summary-5">Weekly Summary<a class="anchor" aria-label="anchor" href="#weekly-summary-5"></a></h3>
+<ul><li>
+<strong>Progress:</strong> I parallelized the hybrid algorithm using OpenMP. This involved creating a <code>src/Makevars</code> file to add the necessary compiler flags and then adding <code>#pragma omp</code> directives to the C++ code to execute the 7 recursive calls in parallel. I then ran a final, comprehensive benchmark of all algorithms and created the <code>projection_plot.R</code> script to visualize the results and calculate the final crossover points.</li>
+<li>
+<strong>Key Learning:</strong> Learning how to configure the build system for an external library like OpenMP was a major step. The <code>Makevars</code> file was critical, and it was impactful to see how a few lines of OpenMP directives could dramatically reduce the execution time by leveraging all available CPU cores. The final performance plot clearly shows the distinct performance tiers of each implementation.</li>
+<li>
+<strong>Challenges/Blockers:</strong> The <code>Makevars</code> file was tricky. The configuration is different for macOS (which I use locally) and Linux (which GitHub Actions uses), and this caused several build failures during the website deployment. It took a few iterations with the AI to create a conditional <code>Makevars</code> file that worked for both environments.</li>
+</ul><hr></div>
+</div>
+<div class="section level2">
+<h2 id="week-7-nov-24---30--website-deployment-and-final-report">Week 7: Nov 24 - 30 | Website Deployment and Final Report<a class="anchor" aria-label="anchor" href="#week-7-nov-24---30--website-deployment-and-final-report"></a></h2>
+<div class="section level3">
+<h3 id="goals-for-this-week-6">Goals for this Week:<a class="anchor" aria-label="anchor" href="#goals-for-this-week-6"></a></h3>
+<ul><li>
+<strong>Goal 1:</strong> Set up the GitHub Pages site for the final tutorial.</li>
+<li>
+<strong>Goal 2:</strong> Draft the initial sections (theory, complexity) and organize the development log.</li>
+<li>
+<strong>Goal 3:</strong> Convert all GenAI logs into the final GitHub Pages tutorial, adding benchmarking results and a code walkthrough.</li>
+<li>
+<strong>Goal 4:</strong> Refine the R package and write the final report document.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="weekly-summary-6">Weekly Summary<a class="anchor" aria-label="anchor" href="#weekly-summary-6"></a></h3>
+<ul><li>
+<strong>Progress:</strong> I finalized the project by deploying the <code>pkgdown</code> website and writing the final report. I created the main tutorial vignette (<code>tutorial.Rmd</code>) by combining my previous logs and reports, and embedded the final benchmark plots directly into the page. After a lengthy debugging process, the website is now live and automatically updates via GitHub Actions.</li>
+<li>
+<strong>Key Learning:</strong> This week was a deep dive into CI/CD (Continuous Integration/Continuous Deployment). Setting up the GitHub Actions workflow was far more complex than I anticipated. It was a practical lesson in how build environments work, the importance of installing system dependencies (like OpenMP), and how to create platform-agnostic build configurations (<code>Makevars</code> for macOS vs. Linux).</li>
+<li>
+<strong>Challenges/Blockers:</strong> The main challenge was a multi-day battle with GitHub Actions. The website build failed repeatedly due to a series of cascading issues, starting with a missing OpenMP library, which then revealed a macOS-specific <code>Makevars</code> file, which then revealed a missing <code>devtools</code> dependency. Debugging this required methodically reading the build logs and fixing each issue one by one with the AI’s help. It was a powerful, if frustrating, lesson in real-world deployment.</li>
+</ul><hr></div>
+</div>
+<div class="section level2">
+<h2 id="final-week-dec-1---7--project-wrap-up-and-presentation">Final Week: Dec 1 - 7 | Project Wrap-up and Presentation<a class="anchor" aria-label="anchor" href="#final-week-dec-1---7--project-wrap-up-and-presentation"></a></h2>
+<div class="section level3">
+<h3 id="goals-for-this-week-7">Goals for this Week:<a class="anchor" aria-label="anchor" href="#goals-for-this-week-7"></a></h3>
+<ul><li>
+<strong>Goal 1:</strong> Submit Final Report.</li>
+<li>
+<strong>Goal 2:</strong> Create presentation slides outlining the motivation, GenAI process, and benchmark results.</li>
+<li>
+<strong>Goal 3:</strong> Finalize and rehearse the 9-minute presentation.</li>
+<li>
+<strong>Goal 4:</strong> Submit Presentation Slides.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="weekly-summary-7">Weekly Summary<a class="anchor" aria-label="anchor" href="#weekly-summary-7"></a></h3>
+<ul><li>
+<strong>Progress:</strong> This week was dedicated to wrapping up the entire project. I submitted the final report, which summarized all the development, challenges, and results. I also created the presentation slides, outlining the project’s motivation, the GenAI-assisted development process, and the key benchmark results. I finalized and rehearsed the 9-minute presentation multiple times to ensure smooth delivery and submitted the slides.</li>
+<li>
+<strong>Key Learning:</strong> The biggest learning from this final week was the art of synthesis. Condensing weeks of complex development, debugging, and performance analysis into a concise, impactful presentation was a challenge. It forced me to distill the most important takeaways and effectively communicate the value of the GenAI workflow.</li>
+<li>
+<strong>Challenges/Blockers:</strong> The main challenge was fitting all the technical details and the narrative of the GenAI process into a strict 10-minute time limit</li>
+</ul><hr></div>
 </div>
 </div>
 
@@ -64,7 +239,7 @@
 
 
       <footer><div class="copyright">
-  <p></p><p>Developed by First Last.</p>
+  <p></p><p>Developed by Elias Lindquist.</p>
 </div>
 
 <div class="pkgdown">
