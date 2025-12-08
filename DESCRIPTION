@@ -1,8 +1,8 @@
 Package: StrassenR
-Title: What the Package Does (One Line, Title Case)
+Title: StrassenR: High performance matrix multiplication in r
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
+    person("Elias", "Lindquist", , "eliasjll@umich.com", role = c("aut", "cre"))
 Description: What the package does (one paragraph).
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
