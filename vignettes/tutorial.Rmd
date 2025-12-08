@@ -80,7 +80,7 @@ This 'call and response' cycle was incredibly effective for me. Because I initia
 
 ## The Hybrid Algorithm
 
-As I mentioned, Strassen's overhead makes it inefficient for small matrices. To solve this, I implemented a 'hybrid' algorithm. The logic this algorithm uses is if the matrix size is above a certain THRESHOLD, we use Strassen's method. But if it's smaller than the threshold, we switch to a fast, standard C++ loop to avoid time loss from Strassen’s overhead. To find the best THRESHOLD, I benchmarked the algorithm at various matrix sizes from 2^4 to 2^8. From the benchmark I found that the optimal crossover point was 64.
+Strassen's overhead makes it inefficient for small matrices. To solve this, I implemented a 'hybrid' algorithm. The logic this algorithm uses is if the matrix size is above a certain THRESHOLD, we use Strassen's method. But if it's smaller than the threshold, we switch to a fast, standard C++ loop to avoid time loss from Strassen’s overhead. To find the best THRESHOLD, I benchmarked the algorithm at various matrix sizes from 2^4 to 2^8. From the benchmark I found that the optimal crossover point was 64.
 
 ```{r threshold-plot, echo=FALSE, fig.cap="Optimal Crossover Threshold for Hybrid Algorithm"}
 # This code is a simplified version of threshold_tuning_plot.R
@@ -124,7 +124,7 @@ The final optimization was to introduce parallelism, which is the simultaneous e
 
 ## Final Functions/Performances
 
-So, here are the final results. This plot shows the performance of all the versions of the matrix algorithms I created, as well as r’s built in matrix operator. From the graph we can see there are two tiers of speed specifically for smaller matrix sizes, with the default Strassens and naive C++ algorithms performing the slowest, and the hybrid, parallel, and default r algorithms performing the fastest. The reason that R’s default matrix multiplication is so fast is because it uses extremely optimized and fast BLAS/LAPACK libraries. Despite it being so highly optimized, I was able to get both the hybrid and parallel implementations of strassens algorithm both faster than R as the matrix size increased, with Parallel beating r at n=130 and hybrid_strassen beating r at n=1198.
+This is the final results. This plot shows the performance of all the versions of the matrix algorithms I created, as well as r’s built in matrix operator. From the graph we can see there are two tiers of speed specifically for smaller matrix sizes, with the default Strassens and naive C++ algorithms performing the slowest, and the hybrid, parallel, and default r algorithms performing the fastest. The reason that R’s default matrix multiplication is so fast is because it uses extremely optimized and fast BLAS/LAPACK libraries. Despite it being so highly optimized, I was able to get both the hybrid and parallel implementations of strassens algorithm both faster than R as the matrix size increased, with Parallel beating r at n=130 and hybrid_strassen beating r at n=1198.
 
 ```{r projection-plot, echo=FALSE, fig.cap="Projected vs. Actual Performance of Matrix Multiplication Algorithms"}
 # This code is a simplified version of vignettes/projection_plot.R
