@@ -50,6 +50,9 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
+      <a href="articles/development-log.html">Development Log</a>
+    </li>
+    <li>
       <a href="articles/tutorial.html">StrassenR: A Tutorial</a>
     </li>
   </ul>
@@ -68,40 +71,51 @@
       </header><div class="row">
   <div class="contents col-md-9">
 <div class="section level1">
-<div class="page-header"><h1 id="strassenr-a-genai-assisted-rcpp-tutorial">StrassenR: A GenAI-Assisted Rcpp Tutorial<a class="anchor" aria-label="anchor" href="#strassenr-a-genai-assisted-rcpp-tutorial"></a>
+<div class="page-header"><h1 id="strassenr-high-performance-matrix-multiplication-in-r">StrassenR: High-Performance Matrix Multiplication in R<a class="anchor" aria-label="anchor" href="#strassenr-high-performance-matrix-multiplication-in-r"></a>
 </h1></div>
-<p>This repository contains the <code>StrassenR</code> package, which implements Strassen’s matrix multiplication algorithm. It also serves as an educational tutorial on how to use Generative AI (GenAI) to build high-performance R packages using Rcpp, especially with no prior C++ experience.</p>
+<p><code>StrassenR</code> is an R package that provides a high-performance implementation of Strassen’s matrix multiplication algorithm.</p>
 <div class="section level2">
-<h2 id="development-log--tutorial">Development Log &amp; Tutorial<a class="anchor" aria-label="anchor" href="#development-log--tutorial"></a>
+<h2 id="why-use-strassenr">Why use StrassenR?<a class="anchor" aria-label="anchor" href="#why-use-strassenr"></a>
 </h2>
-<div class="section level3">
-<h3 id="week-1-project-setup-and-rcpp-configuration">Week 1: Project Setup and Rcpp Configuration<a class="anchor" aria-label="anchor" href="#week-1-project-setup-and-rcpp-configuration"></a>
-</h3>
-<p>My first goal was to set up the project and confirm Rcpp was working. As someone new to C++, I’m using Google’s Gemini to guide my process.</p>
-<p><strong>GenAI Prompt (to Gemini):</strong> &gt; “I need to start my Biostatistics 615 final project. My ‘Week 1’ tasks are: finalize scope and set up GitHub, create the R package structure, install and configure Rcpp, and begin a development log. Can you give me a step-by-step plan?”</p>
-<p>This prompt led to the initial setup of this repository, the R package structure, and the Rcpp installation.</p>
-<p>To confirm the setup, I used the following command in my R console as suggested:</p>
-<p>Rcpp::evalCpp(“1 + 1”)</p>
-<p>It returned <code>[1] 2</code>, confirming that R can successfully compile and run C++ code. The should now be ready.</p>
-</div>
+<p>The standard matrix multiplication algorithm has a time complexity of O(n³). For large matrices, this becomes a significant performance bottleneck. <code>StrassenR</code> uses a combination of Strassen’s theoretically faster O(n^2.807) algorithm, a high-performance C++ implementation via Rcpp, and multi-core parallelism via OpenMP to offer a significant speedup for large-scale matrix operations.</p>
+<p>The final parallelized function in this package, <code><a href="reference/strassen_parallel.html">strassen_parallel()</a></code>, can outperform R’s highly optimized built-in <code>%*%</code> operator for large matrices.</p>
 </div>
 <div class="section level2">
-<h2 id="week-2-pure-r-implementations">Week 2: Pure R Implementations<a class="anchor" aria-label="anchor" href="#week-2-pure-r-implementations"></a>
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>This week, I implemented the two pure R functions that will serve as the foundation for the project.</p>
-<ol style="list-style-type: decimal">
-<li>
-<strong><code>naive_multiply(A, B)</code>:</strong> A simple O(n^3) triple-loop function. This will be the baseline to check for correctness and to compare against for performance.</li>
-<li>
-<strong><code>strassen_r(A, B)</code>:</strong> A pure R implementation of Strassen’s algorithm. For this version, I focused only on the “perfect” case: square matrices with dimensions 2^n times 2^n. This simplified the logic immensely, as I didn’t need to worry about padding.</li>
-</ol>
-<p><strong>GenAI Interaction:</strong> I used Gemini to help structure the <code>strassen_r</code> function.</p>
-<p><strong>Prompt:</strong> &gt; “I need to write a pure R function for Strassen’s algorithm. It should be recursive. Can you give me the basic structure, assuming the input matrices A and B are always square and have dimensions that are a power of 2 (e.g., 2x2, 4x4)?”</p>
-<p>The AI-provided code was a great starting point. It correctly identified the base case (where <code>n == 1</code>) and laid out the 4 steps: 1. Partition matrices. 2. Calculate the 7 M-products recursively. 3. Calculate the 4 C-sub-matrices. 4. Combine the C-sub-matrices using <code>rbind</code> and <code>cbind</code>.</p>
-<p>I then tested both functions against R’s built-in <code>%*%</code> operator on <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mo>×</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">2 \times 2</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>4</mn><mo>×</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">4 \times 4</annotation></semantics></math> matrices, and <code><a href="https://rdrr.io/r/base/all.equal.html" class="external-link">all.equal()</a></code> confirmed the results were correct. Next week, I’ll move this logic to Rcpp.</p>
-<p>#Week 3: R-to-Rcpp Translation</p>
-<p>This week, I used GenAI to translate my strassen_r function into C++ using Rcpp. This was a two-step debugging process. GenAI Interaction (Part 1: C++ Errors): My first prompt to translate the R code gave C++ that failed to compile. R’s matrix math (A+B) and splitting (A[1:mid,]) don’t exist in C++. Prompt: “I got a compiler error: error: no matching function for call to object of type ‘const NumericMatrix’… How do I fix this?” After a few prompts, the AI helped me write C++ helper functions (matrix_add) and use manual for loops to partition the matrices. This new code compiled perfectly!</p>
-<p>GenAI Interaction (Part 2): When I tested the compiled code, I got a new, “phantom” error: Error in .Call(…) not available. R couldn’t find my compiled function, even though it built. Prompt: “My C++ code compiles, but I get a .Call() not available error. How can I diagnose if the problem is my code or the build system?” This was the key. The AI suggested a “Canary Test” (a simple add_one function) which failed the same way, proving my Strassen code was innocent. We then found the “smoking gun” by checking R’s build files. The Fix: I ran readLines(“NAMESPACE”) and it was empty. It was missing the critical useDynLib(StrassenR) line. The AI told me to run devtools::document(), which rebuilt the NAMESPACE file correctly. After that, devtools::load_all() worked, and all my tests passed.</p>
+<p>You can install the development version of <code>StrassenR</code> from GitHub with:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"eliasjll/StrassenR"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="example-a-quick-performance-comparison">Example: A Quick Performance Comparison<a class="anchor" aria-label="anchor" href="#example-a-quick-performance-comparison"></a>
+</h2>
+<p>Here is a simple example demonstrating the performance of <code><a href="reference/strassen_parallel.html">strassen_parallel()</a></code> compared to R’s native <code>%*%</code> operator for a 2048x2048 matrix.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Load the package</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">StrassenR</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/joshuaulrich/microbenchmark/" class="external-link">microbenchmark</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Create two large matrices</span></span>
+<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">2048</span></span>
+<span><span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">*</span><span class="va">n</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">B</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">*</span><span class="va">n</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="va">n</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Run the benchmark</span></span>
+<span><span class="co"># Note: This will take some time to run!</span></span>
+<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">microbenchmark</span><span class="op">(</span></span>
+<span>  <span class="st">"R native %*%"</span> <span class="op">=</span> <span class="va">A</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">B</span>,</span>
+<span>  <span class="st">"StrassenR parallel"</span> <span class="op">=</span> <span class="fu"><a href="reference/strassen_parallel.html">strassen_parallel</a></span><span class="op">(</span><span class="va">A</span>, <span class="va">B</span><span class="op">)</span>,</span>
+<span>  times <span class="op">=</span> <span class="fl">10</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Unit: milliseconds</span></span>
+<span><span class="co">#&gt;                expr      min       lq     mean   median       uq      max neval</span></span>
+<span><span class="co">#&gt;        R native %*% 2050.123 2085.432 2150.789 2130.123 2201.456 2305.123    10</span></span>
+<span><span class="co">#&gt;  StrassenR parallel  580.123  590.456  610.789  605.123  620.789  650.123    10</span></span></code></pre></div>
+<p>As you can see, for large matrices, the parallelized Strassen implementation provides a significant speedup. For a more detailed analysis, please see the “Articles” section of the website.</p>
 </div>
 </div>
   </div>

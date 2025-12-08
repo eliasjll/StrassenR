@@ -49,6 +49,9 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
+      <a href="../articles/development-log.html">Development Log</a>
+    </li>
+    <li>
       <a href="../articles/tutorial.html">StrassenR: A Tutorial</a>
     </li>
   </ul>
@@ -151,14 +154,14 @@ understand complex C++ code with no prior experience.</p>
 <div class="section level2">
 <h2 id="the-hybrid-algorithm">The Hybrid Algorithm<a class="anchor" aria-label="anchor" href="#the-hybrid-algorithm"></a>
 </h2>
-<p>As I mentioned, Strassen’s overhead makes it inefficient for small
-matrices. To solve this, I implemented a ‘hybrid’ algorithm. The logic
-this algorithm uses is if the matrix size is above a certain THRESHOLD,
-we use Strassen’s method. But if it’s smaller than the threshold, we
-switch to a fast, standard C++ loop to avoid time loss from Strassen’s
-overhead. To find the best THRESHOLD, I benchmarked the algorithm at
-various matrix sizes from 2^4 to 2^8. From the benchmark I found that
-the optimal crossover point was 64.</p>
+<p>Strassen’s overhead makes it inefficient for small matrices. To solve
+this, I implemented a ‘hybrid’ algorithm. The logic this algorithm uses
+is if the matrix size is above a certain THRESHOLD, we use Strassen’s
+method. But if it’s smaller than the threshold, we switch to a fast,
+standard C++ loop to avoid time loss from Strassen’s overhead. To find
+the best THRESHOLD, I benchmarked the algorithm at various matrix sizes
+from 2^4 to 2^8. From the benchmark I found that the optimal crossover
+point was 64.</p>
 <pre><code><span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
 <span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
@@ -191,18 +194,18 @@ matrices.</p>
 <div class="section level2">
 <h2 id="final-functionsperformances">Final Functions/Performances<a class="anchor" aria-label="anchor" href="#final-functionsperformances"></a>
 </h2>
-<p>So, here are the final results. This plot shows the performance of
-all the versions of the matrix algorithms I created, as well as r’s
-built in matrix operator. From the graph we can see there are two tiers
-of speed specifically for smaller matrix sizes, with the default
-Strassens and naive C++ algorithms performing the slowest, and the
-hybrid, parallel, and default r algorithms performing the fastest. The
-reason that R’s default matrix multiplication is so fast is because it
-uses extremely optimized and fast BLAS/LAPACK libraries. Despite it
-being so highly optimized, I was able to get both the hybrid and
-parallel implementations of strassens algorithm both faster than R as
-the matrix size increased, with Parallel beating r at n=130 and
-hybrid_strassen beating r at n=1198.</p>
+<p>This is the final results. This plot shows the performance of all the
+versions of the matrix algorithms I created, as well as r’s built in
+matrix operator. From the graph we can see there are two tiers of speed
+specifically for smaller matrix sizes, with the default Strassens and
+naive C++ algorithms performing the slowest, and the hybrid, parallel,
+and default r algorithms performing the fastest. The reason that R’s
+default matrix multiplication is so fast is because it uses extremely
+optimized and fast BLAS/LAPACK libraries. Despite it being so highly
+optimized, I was able to get both the hybrid and parallel
+implementations of strassens algorithm both faster than R as the matrix
+size increased, with Parallel beating r at n=130 and hybrid_strassen
+beating r at n=1198.</p>
 <div class="figure">
 <img src="tutorial_files/figure-html/projection-plot-1.png" class="r-plt" alt="Projected vs. Actual Performance of Matrix Multiplication Algorithms" width="700"><p class="caption">
 Projected vs. Actual Performance of Matrix Multiplication Algorithms
