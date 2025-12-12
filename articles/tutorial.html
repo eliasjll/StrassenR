@@ -146,7 +146,7 @@ reduction drops the complexity to O(n^2.807). However, it adds overhead,
 making it slower for small matrices. The algorithm is typically used for
 2^n x 2^n matrices, but we can pad any matrix with zeros to make it
 conform.</p>
-<p><img src="strassen-formulas-1.png"><img src="strassen-formulas-2.png"><img src="strassen-formulas-3.png"></p>
+<p><img src="strassen-formulas1.png"><img src="strassen-formulas2.png"><img src="strassen-formulas3.png"></p>
 </div>
 <div class="section level3">
 <h3 id="genai-workflow-1-r-to-c-translation">GenAI Workflow 1: R-to-C++ Translation<a class="anchor" aria-label="anchor" href="#genai-workflow-1-r-to-c-translation"></a>
@@ -154,18 +154,8 @@ conform.</p>
 <p>To make this fast, I needed to implement it in C++ using Rcpp. As a
 C++ novice, I relied on Gemini. I first wrote the algorithm in pure R,
 then asked the AI to translate it.</p>
-<blockquote>
-<p><strong>My Prompt:</strong> “I need to write a pure R function for
-Strassen’s algorithm. It should be recursive. Can you give me the basic
-structure, assuming the input matrices A and B are always square and
-have dimensions that are a power of 2?”</p>
-</blockquote>
-<p>The AI gave a great starting point. I then asked it to translate this
-R code to C++.</p>
-<blockquote>
-<p><strong>My Prompt:</strong> “Can you translate this R function into a
-C++ function using Rcpp?”</p>
-</blockquote>
+<p>The AI gave a great starting point for the R version. I then asked it
+to translate this R code to C++.</p>
 <p>This led to our first challenge. The AI’s direct translation produced
 C++ code that looked like R, using <code>+</code> for matrix addition,
 which doesn’t exist in C++. This showed me early on that the AI can make
@@ -176,17 +166,89 @@ incorrect assumptions.</p>
 </h3>
 <p>This led to the core iterative workflow I used for the project. The
 process was a simple loop: prompt with a goal, test the code, and if it
-failed, return to the AI with the error message.</p>
-<blockquote>
-<p><strong>My Prompt:</strong> “I got a compiler error:
-<code>error: invalid operands to binary expression ('const NumericMatrix' and 'const NumericMatrix')</code>.
-How do I fix this?”</p>
-</blockquote>
+failed, return to the AI with the error message. A key prompt during
+this phase was asking for help with a specific compiler error.</p>
 <p>This ‘call and response’ cycle, guided by the <code>GEMINI.md</code>
 file’s instruction to “act as a teacher,” turned compiler errors into
 learning moments, allowing me to build and understand complex C++ code
 with no prior experience.</p>
 <p><img src="debugging-flowchart.png"></p>
+<div class="section level4">
+<h4 id="debugging-examples">Debugging Examples<a class="anchor" aria-label="anchor" href="#debugging-examples"></a>
+</h4>
+<p>The development process was filled with different kinds of bugs. Here
+are three specific examples that show the different challenges faced and
+how they were solved.</p>
+<div class="section level5">
+<h5 id="case-study-1-the-const-correctness-error">Case Study 1: The <code>const</code> Correctness Error<a class="anchor" aria-label="anchor" href="#case-study-1-the-const-correctness-error"></a>
+</h5>
+<p><img src="error-const-correctness.png"></p>
+<ul>
+<li>
+<strong>How it Happened:</strong> This C++ compiler error occurred
+when I passed a <code>const</code> (read-only) matrix to a helper
+function that expected a non-<code>const</code> (modifiable)
+matrix.</li>
+<li>
+<strong>What it Means:</strong> This is a C++ safety feature. The
+compiler stops you from accidentally changing data in a function that
+you promised would not be changed. It’s a key concept for writing safe
+C++ code that doesn’t have a direct parallel in R.</li>
+<li>
+<strong>How it was Fixed:</strong> The AI explained the concept of
+<code>const</code> correctness. The fix was to ensure the helper
+function also declared its parameter as <code>const</code>, which
+corrected the function’s “promise” to the compiler and resolved the
+error.</li>
+</ul>
+</div>
+<div class="section level5">
+<h5 id="case-study-2-the-openmp-linker-error">Case Study 2: The OpenMP Linker Error<a class="anchor" aria-label="anchor" href="#case-study-2-the-openmp-linker-error"></a>
+</h5>
+<p><img src="error-openmp-linker.png"></p>
+<ul>
+<li>
+<strong>How it Happened:</strong> After adding OpenMP for
+parallelism, the code worked on my Mac but failed during the website
+deployment on GitHub Actions with a <code>-lomp: not found</code>
+error.</li>
+<li>
+<strong>What it Means:</strong> This error means the GitHub Actions
+runner, which uses Linux, couldn’t find the OpenMP library. My
+<code>Makevars</code> file, which tells the compiler how to find
+libraries, was written only for my macOS setup.</li>
+<li>
+<strong>How it was Fixed:</strong> This is a classic cross-platform
+compatibility issue. With the AI’s help, I wrote a conditional
+<code>Makevars</code> file that provides the correct compiler flags for
+both Linux and macOS, making the package portable and fixing the
+deployment pipeline.</li>
+</ul>
+</div>
+<div class="section level5">
+<h5 id="case-study-3-the-silent-logic-bug">Case Study 3: The Silent Logic Bug<a class="anchor" aria-label="anchor" href="#case-study-3-the-silent-logic-bug"></a>
+</h5>
+<p><img src="error-testthat-failure.png"></p>
+<ul>
+<li>
+<strong>How it Happened:</strong> After implementing the padding
+logic for non-square matrices, the code compiled perfectly, but it was
+producing the wrong answers. A silent off-by-one error in an indexing
+loop was scrambling the results.</li>
+<li>
+<strong>What it Means:</strong> This is a logical bug that the
+compiler cannot catch. The code is syntactically valid, but the logic is
+flawed. The only way to find these errors is with rigorous testing.</li>
+<li>
+<strong>How it was Fixed:</strong> I prompted the AI to help me
+write a <code>testthat</code> script to compare my function’s output
+against R’s native <code>%*%</code> for various matrix sizes. The test
+immediately failed, as shown in the image. This failure allowed me to go
+back to the C++ code and, with the AI’s help, pinpoint and fix the
+indexing error.</li>
+</ul>
+</div>
+</div>
 </div>
 <div class="section level3">
 <h3 id="optimization-1-the-hybrid-algorithm">Optimization 1: The Hybrid Algorithm<a class="anchor" aria-label="anchor" href="#optimization-1-the-hybrid-algorithm"></a>
@@ -194,13 +256,8 @@ with no prior experience.</p>
 <p>Strassen’s overhead makes it inefficient for small matrices. To solve
 this, I implemented a ‘hybrid’ algorithm that switches to a fast,
 standard C++ loop for matrices below a certain <code>THRESHOLD</code>.
-To find the best threshold, I prompted the AI:</p>
-<blockquote>
-<p><strong>My Prompt:</strong> “I need to find the optimal crossover
-threshold for my hybrid algorithm. Can you write an R script using the
-<code>microbenchmark</code> package to test thresholds of 16, 32, 64,
-128, and 256 for a 1024x1024 matrix and plot the results?”</p>
-</blockquote>
+To find the best threshold, I prompted the AI to write a benchmarking
+script.</p>
 <p>The benchmark found the optimal crossover point was
 <strong>64</strong>.</p>
 <pre><code><span><span class="co">#&gt; </span></span>
@@ -225,12 +282,7 @@ calls in Strassen’s are independent, making them perfect for
 parallelization. Using OpenMP, I could tell the compiler to execute
 these 7 tasks simultaneously across all available CPU cores. This
 required a custom <code>Makevars</code> file, which was a major
-challenge.</p>
-<blockquote>
-<p><strong>My Prompt:</strong> “I want to use OpenMP to parallelize my
-Rcpp code. How do I create a <code>src/Makevars</code> file on macOS to
-link against the OpenMP library installed by Homebrew?”</p>
-</blockquote>
+challenge that required asking the AI for help.</p>
 <p>After several iterations, we created a <code>Makevars</code> file
 that worked on both macOS and Linux, a critical step for making the
 package portable.</p>
