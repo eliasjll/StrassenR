@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-Hello everyone, my name is Elias Lindquist. For my project, I decided to implement Strassen's algorithm for high-performance matrix multiplication in R, with the help of a generative AI partner, Gemini. This tutorial documents the entire journey, from initial concept to a fully optimized and parallelized R package.
+For my project, I decided to implement Strassen's algorithm for high-performance matrix multiplication in R, with the help of a generative AI partner, Gemini CLI. This tutorial documents the entire journey, from initial concept to a fully optimized and parallelized R package.
 
 ## The `GEMINI.md` Context File
 
@@ -72,7 +72,7 @@ The solution is Strassen's algorithm, a 'divide and conquer' method that reduces
 
 ## GenAI Workflow 1: R-to-C++ Translation
 
-To make this fast, I needed to implement it in C++ using Rcpp. As a C++ novice, I relied on Gemini. I first wrote the algorithm in pure R, then asked the AI to translate it.
+To make this fast, I needed to implement it in C++ using Rcpp. As a C++ novice, I relied on Gemini CLI. I first wrote the algorithm in pure R, then asked the AI to translate it.
 
 The AI gave a great starting point for the R version. I then asked it to translate this R code to C++.
 
@@ -90,7 +90,7 @@ This 'call and response' cycle, guided by the `GEMINI.md` file's instruction to 
 
 The development process was filled with different kinds of bugs. Here are three specific examples that show the different challenges faced and how they were solved.
 
-#### Case Study 1: The `const` Correctness Error
+#### The `const` Correctness Error:
 
 ![](error-const-correctness.png)
 
@@ -98,7 +98,7 @@ The development process was filled with different kinds of bugs. Here are three 
 *   **What it Means:** This is a C++ safety feature. The compiler stops you from accidentally changing data in a function that you promised would not be changed. It's a key concept for writing safe C++ code that doesn't have a direct parallel in R.
 *   **How it was Fixed:** The AI explained the concept of `const` correctness. The fix was to ensure the helper function also declared its parameter as `const`, which corrected the function's "promise" to the compiler and resolved the error.
 
-#### Case Study 2: The OpenMP Linker Error
+#### The OpenMP Linker Error:
 
 ![](error-openmp-linker.png)
 
@@ -106,7 +106,7 @@ The development process was filled with different kinds of bugs. Here are three 
 *   **What it Means:** This error means the GitHub Actions runner, which uses Linux, couldn't find the OpenMP library. My `Makevars` file, which tells the compiler how to find libraries, was written only for my macOS setup.
 *   **How it was Fixed:** This is a classic cross-platform compatibility issue. With the AI's help, I wrote a conditional `Makevars` file that provides the correct compiler flags for both Linux and macOS, making the package portable and fixing the deployment pipeline.
 
-#### Case Study 3: The Silent Logic Bug
+#### The Silent Logic Bug:
 
 ![](error-testthat-failure.png)
 
@@ -132,7 +132,7 @@ ggplot(threshold_data, aes(x = threshold, y = median_ms)) + geom_line(color = "b
 
 The final optimization was to introduce parallelism. The 7 recursive calls in Strassen's are independent, making them perfect for parallelization. Using OpenMP, I could tell the compiler to execute these 7 tasks simultaneously across all available CPU cores. This required a custom `Makevars` file, which was a major challenge that required asking the AI for help.
 
-After several iterations, we created a `Makevars` file that worked on both macOS and Linux, a critical step for making the package portable.
+After several iterations, I created a `Makevars` file that worked on both macOS and Linux, a critical step for making the package portable.
 
 ## Final Performance
 
@@ -155,6 +155,6 @@ I found that Gemini did a great job of helping to understand and optimize code, 
 
 ## Conclusion & Future Improvements
 
-In conclusion, I successfully built and optimized an R package that outperforms R's built-in operator, using Gemini CLI as a development and debugging partner. I used Strassen's because it is not a "galactic" algorithm, meaning its performance gains are visible on practical problem sizes.
+In conclusion, I successfully built and optimized an R package that outperforms R's built-in operator, using Gemini CLI as a development and debugging partner. I used Strassen's because it is not a "galactic" algorithm (while all the algorithms with a smaller timne complexity were), meaning its performance gains are visible on practical problem sizes.
 
 For next steps, I would replace the naive C++ base case with a call to a dedicated BLAS library and implement the Strassen-Winograd variant, which requires fewer additions and should theoretically reduce execution time.
