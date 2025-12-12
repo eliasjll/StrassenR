@@ -1,8 +1,8 @@
 ---
-title: "StrassenR: A Tutorial"
+title: "StrassenR Tutorial: A GenAI-Driven Approach"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{StrassenR: A Tutorial}
+  %\VignetteIndexEntry{StrassenR Tutorial: A GenAI-Driven Approach}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -14,164 +14,129 @@ knitr::opts_chunk$set(
 )
 ```
 
-## The Problem with Matrix Multiplication in R
+# Introduction
 
-Matrix multiplication is a fundamental operation in almost every field of scientific computing, but it's computationally expensive and can take a long amount of time to compute for larger matrices. The standard matrix multiplication algorithm that uses 3 nested loops has a time complexity of O(n³), which means that if you double the size of your matrices, the computation time increases by a factor of eight. As you can see from this plot of R's built in matrix multiplication algorithm performance, this cubic growth quickly becomes a bottleneck. For large matrices, run times can become too long to be practical. Our goal is to break through this O(n³) wall.
+Hello everyone, my name is Elias Lindquist. For my project, I decided to implement Strassen's algorithm for high-performance matrix multiplication in R, with the help of a generative AI partner, Gemini. This tutorial documents the entire journey, from initial concept to a fully optimized and parallelized R package.
 
-```{r r-performance-plot, echo=FALSE, fig.cap="Performance of R's Native Matrix Multiplication"}
-# This code is a simplified version of r_performance_plot.R
-# It uses pre-calculated data.
-library(ggplot2)
-library(scales)
+## The `GEMINI.md` Context File
 
-r_perf_data <- data.frame(
-  size = c(32, 64, 128, 256, 512, 1024, 2048),
-  time_sec = c(0.0000089, 0.000066, 0.00056, 0.0042, 0.032, 0.253, 2.087)
-)
+To make my collaboration with the AI as effective as possible, I used a `GEMINI.md` file. This file acted as a "system prompt" or a set of standing orders for the AI. It ensured the AI always remembered the project's goal, my persona as a C++ novice, and the fact that this tutorial was a key deliverable.
 
-time_labels <- function(x) {
-  sapply(x, function(y) {
-    if (is.na(y)) return(NA)
-    ms <- y * 1000
-    if (ms < 1) return(paste(sprintf("%.2f", ms), "ms"))
-    if (y < 1) return(paste(round(ms), "ms"))
-    if (y < 60) return(paste(round(y, 1), "s"))
-    return(paste(round(y / 60, 1), "min"))
-  })
-}
+Here is the exact content of the file:
 
-ggplot(r_perf_data, aes(x = size, y = time_sec)) +
-  geom_line(color = "blue", linewidth = 1.2) +
-  geom_point(color = "blue", size = 4, alpha = 0.8) +
-  scale_x_continuous(breaks = r_perf_data$size, labels = scales::comma) +
-  scale_y_log10(labels = time_labels) +
-  labs(
-    title = "Performance of R's Native Matrix Multiplication (%*%)",
-    x = "Matrix Size (n x n)",
-    y = "Median Execution Time - Log Scale"
-  ) +
-  theme_minimal(base_size = 14)
+```markdown
+# Project: StrassenR (Biostatistics 615 Final Project)
+
+You are an expert AI assistant specializing in R, Rcpp, and C++. You are helping me build an R package from scratch.
+
+## 1. Project Context
+* **Project Goal:** To create an R package named 'StrassenR'.
+* **Core Task:** Implement Strassen's fast matrix multiplication algorithm.
+* **Tech Stack:** R, C++, and Rcpp (for high-performance C++ integration with R).
+* **Related Packages:** We will likely use `devtools`, `roxygen2`, and `testthat` for package building, documentation, and testing.
+
+## 2. My Persona & Your Role
+* I am a student who is proficient in R.
+* **IMPORTANT:** I am **new to C++**. Please explain C++ concepts, syntax, and errors clearly and simply. Assume I have no prior C++ knowledge.
+* When you provide C++ code, please include comments explaining what each part does.
+
+## 3. Project Goal (GenAI Tutorial)
+* A key part of my project is to create a tutorial about using GenAI (you) for development.
+* When I ask, "How should I document this part?" or "What's a good summary of this step?", please provide a clear summary of our problem-solving process that I can use for my tutorial.
+* Be explicit about *why* a certain solution is chosen (e.g., "We are using pass-by-reference here for C++ performance to avoid copying the large matrices.").
 ```
 
-## Strassen's Algorithm
+---
 
-The solution for this is Strassen's algorithm. It’s a 'divide and conquer' method that rearranges the math to reduce the number of required multiplications from 8 in the standard matrix multiplication method down to 7. This single reduction in multiplication drops the complexity from O(n³) to approximately O(n^2.807) which is a huge theoretical improvement. However, it comes at the cost of more additions and subtractions, which creates overhead. This means that for small matrices Strassen's can actually be slower than the naive method, which is a trade-off that becomes important later on. Finally Starssen’s algorithm is typically used for 2nx2n sized matrices but by padding these matrices with 0s we can get them to 2nx2n which then allows the algorithm to work.
+# The Development Journey
 
-![](images/strassen-formulas.png)
+## The Problem with Matrix Multiplication
+
+Matrix multiplication is fundamental in scientific computing, but it's expensive. The standard algorithm has a time complexity of O(n³), meaning if you double your matrix size, the computation time increases eightfold. This plot of R's built-in `%*%` operator shows this cubic growth clearly. For large matrices, this becomes a major bottleneck. Our goal is to break this O(n³) wall.
+
+```{r r-performance-plot, echo=FALSE, fig.cap="Performance of R's Native Matrix Multiplication"}
+library(ggplot2)
+library(scales)
+r_perf_data <- data.frame(size = c(32, 64, 128, 256, 512, 1024, 2048), time_sec = c(8.9e-06, 6.6e-05, 0.00056, 0.0042, 0.032, 0.253, 2.087))
+time_labels <- function(x) { sapply(x, function(y) { if (is.na(y)) return(NA); ms <- y * 1000; if (ms < 1) return(paste(sprintf("%.2f", ms), "ms")); if (y < 1) return(paste(round(ms), "ms")); if (y < 60) return(paste(round(y, 1), "s")); return(paste(round(y/60, 1), "min")) }) }
+ggplot(r_perf_data, aes(x = size, y = time_sec)) + geom_line(color = "blue", linewidth = 1.2) + geom_point(color = "blue", size = 4, alpha = 0.8) + scale_x_continuous(breaks = r_perf_data$size, labels = scales::comma) + scale_y_log10(labels = time_labels) + labs(title = "Performance of R's Native Matrix Multiplication (%*%)", x = "Matrix Size (n x n)", y = "Median Execution Time - Log Scale") + theme_minimal(base_size = 14)
+```
+
+## The Solution: Strassen's Algorithm
+
+The solution is Strassen's algorithm, a 'divide and conquer' method that reduces the required multiplications from 8 to 7. This single reduction drops the complexity to O(n^2.807). However, it adds overhead, making it slower for small matrices. The algorithm is typically used for 2^n x 2^n matrices, but we can pad any matrix with zeros to make it conform.
+
+![](strassen-formulas-1.png)
+![](strassen-formulas-2.png)
+![](strassen-formulas-3.png)
 
 ## GenAI Workflow 1: R-to-C++ Translation
 
-To make this run fast, I needed to implement it in C++ using rcpp, but since I had never coded in C++ before I decided to use Gemini CLI to implement any code I would need in that language. I started by writing the algorithm in pure R to get the logic right, and then asked the AI to translate it into C++. This led to the first challenge I faced with the AI. The AI's direct translation produced C++ code that looked like R code, for example, using the plus operator for matrix addition which doesn't exist in C++. This definitely helped me see early on that the gen AI can make incorrect assumptions, and its output needs to be heavily looked over and debugged.
+To make this fast, I needed to implement it in C++ using Rcpp. As a C++ novice, I relied on Gemini. I first wrote the algorithm in pure R, then asked the AI to translate it.
 
-## GenAI Workflow 2: Iterative C++ Debugging
+> **My Prompt:** "I need to write a pure R function for Strassen’s algorithm. It should be recursive. Can you give me the basic structure, assuming the input matrices A and B are always square and have dimensions that are a power of 2?"
 
-This led to the core iterative workflow I used for working with generative AI for the entire project. As shown in the flowchart, the process was a simple loop:
+The AI gave a great starting point. I then asked it to translate this R code to C++.
 
-1.  First, I'd prompt the AI with a goal for what I wanted for a new section of code
-2.  Then, I'd generate and test the code it gave me.
-3.  I'd verify if it worked and produced the right result.
-4.  If not, I would go back to the AI with the new error message.
+> **My Prompt:** "Can you translate this R function into a C++ function using Rcpp?"
 
-This 'call and response' cycle was incredibly effective for me. Because I initially instructed gemini cli in its md file to act as a teacher and explain all C++ code it produced for me, this turned compiler errors into learning moments for me, allowing me to build and understand complex C++ code with no prior experience.
+This led to our first challenge. The AI's direct translation produced C++ code that looked like R, using `+` for matrix addition, which doesn't exist in C++. This showed me early on that the AI can make incorrect assumptions.
 
-![](images/debugging-flowchart.png)
+## GenAI Workflow 2: Iterative Debugging
 
-![](images/gemini-error-loop.png)
+This led to the core iterative workflow I used for the project. The process was a simple loop: prompt with a goal, test the code, and if it failed, return to the AI with the error message.
 
-## The Hybrid Algorithm
+> **My Prompt:** "I got a compiler error: `error: invalid operands to binary expression ('const NumericMatrix' and 'const NumericMatrix')`. How do I fix this?"
 
-Strassen's overhead makes it inefficient for small matrices. To solve this, I implemented a 'hybrid' algorithm. The logic this algorithm uses is if the matrix size is above a certain THRESHOLD, we use Strassen's method. But if it's smaller than the threshold, we switch to a fast, standard C++ loop to avoid time loss from Strassen’s overhead. To find the best THRESHOLD, I benchmarked the algorithm at various matrix sizes from 2^4 to 2^8. From the benchmark I found that the optimal crossover point was 64.
+This 'call and response' cycle, guided by the `GEMINI.md` file's instruction to "act as a teacher," turned compiler errors into learning moments, allowing me to build and understand complex C++ code with no prior experience.
+
+![](debugging-flowchart.png)
+
+## Optimization 1: The Hybrid Algorithm
+
+Strassen's overhead makes it inefficient for small matrices. To solve this, I implemented a 'hybrid' algorithm that switches to a fast, standard C++ loop for matrices below a certain `THRESHOLD`. To find the best threshold, I prompted the AI:
+
+> **My Prompt:** "I need to find the optimal crossover threshold for my hybrid algorithm. Can you write an R script using the `microbenchmark` package to test thresholds of 16, 32, 64, 128, and 256 for a 1024x1024 matrix and plot the results?"
+
+The benchmark found the optimal crossover point was **64**.
 
 ```{r threshold-plot, echo=FALSE, fig.cap="Optimal Crossover Threshold for Hybrid Algorithm"}
-# This code is a simplified version of threshold_tuning_plot.R
-# It uses pre-calculated data.
 library(ggplot2)
 library(dplyr)
-
-threshold_data <- data.frame(
-  threshold = c(16, 32, 64, 128, 256),
-  median_ms = c(2685.633, 2328.833, 2057.906, 2098.130, 2504.597)
-)
-
-optimal_point <- threshold_data %>%
-  filter(median_ms == min(median_ms))
-
-ggplot(threshold_data, aes(x = threshold, y = median_ms)) +
-  geom_line(color = "blue", linewidth = 1.2) +
-  geom_point(color = "blue", size = 4, alpha = 0.8) +
-  geom_point(data = optimal_point, aes(x = threshold, y = median_ms), color = "red", size = 6) +
-  geom_vline(xintercept = optimal_point$threshold, linetype = "dashed", color = "red") +
-  annotate("text", 
-           x = optimal_point$threshold, 
-           y = optimal_point$median_ms + (0.1 * optimal_point$median_ms),
-           label = paste("Optimal:", optimal_point$threshold),
-           color = "red",
-           hjust = 0.5) +
-  labs(
-    title = "Hybrid Algorithm Performance vs. Crossover Threshold",
-    subtitle = "For a fixed matrix size of 1024x1024",
-    x = "Crossover Threshold",
-    y = "Median Execution Time (ms)"
-  ) +
-  theme_minimal(base_size = 14)
+threshold_data <- data.frame(threshold = c(16, 32, 64, 128, 256), median_ms = c(2685.633, 2328.833, 2057.906, 2098.130, 2504.597))
+optimal_point <- threshold_data %>% filter(median_ms == min(median_ms))
+ggplot(threshold_data, aes(x = threshold, y = median_ms)) + geom_line(color = "blue", linewidth = 1.2) + geom_point(color = "blue", size = 4, alpha = 0.8) + geom_point(data = optimal_point, aes(x = threshold, y = median_ms), color = "red", size = 6) + geom_vline(xintercept = optimal_point$threshold, linetype = "dashed", color = "red") + annotate("text", x = optimal_point$threshold, y = optimal_point$median_ms + (0.1 * optimal_point$median_ms), label = paste("Optimal:", optimal_point$threshold), color = "red", hjust = 0.5) + labs(title = "Hybrid Algorithm Performance vs. Crossover Threshold", subtitle = "For a fixed matrix size of 1024x1024", x = "Crossover Threshold", y = "Median Execution Time (ms)") + theme_minimal(base_size = 14)
 ```
 
-## Parallelism with OpenMP
+## Optimization 2: Parallelism with OpenMP
 
-The final optimization was to introduce parallelism, which is the simultaneous execution of multiple calculations or processes. The 7 recursive calls in Strassen's algorithm are completely independent of each other, making them a perfect target for parallelization. Using a library called OpenMP, I was able to produce C++ code that tells the compiler to execute these 7 tasks simultaneously across all available CPU cores as opposed to the single core which is what R will normally do. As the diagram shows, this turns a sequential process into a parallel one, significantly reducing the total execution time for large matrices.
+The final optimization was to introduce parallelism. The 7 recursive calls in Strassen's are independent, making them perfect for parallelization. Using OpenMP, I could tell the compiler to execute these 7 tasks simultaneously across all available CPU cores. This required a custom `Makevars` file, which was a major challenge.
 
-![](images/openmp-diagram.png)
+> **My Prompt:** "I want to use OpenMP to parallelize my Rcpp code. How do I create a `src/Makevars` file on macOS to link against the OpenMP library installed by Homebrew?"
 
-## Final Functions/Performances
+After several iterations, we created a `Makevars` file that worked on both macOS and Linux, a critical step for making the package portable.
 
-This is the final results. This plot shows the performance of all the versions of the matrix algorithms I created, as well as r’s built in matrix operator. From the graph we can see there are two tiers of speed specifically for smaller matrix sizes, with the default Strassens and naive C++ algorithms performing the slowest, and the hybrid, parallel, and default r algorithms performing the fastest. The reason that R’s default matrix multiplication is so fast is because it uses extremely optimized and fast BLAS/LAPACK libraries. Despite it being so highly optimized, I was able to get both the hybrid and parallel implementations of strassens algorithm both faster than R as the matrix size increased, with Parallel beating r at n=130 and hybrid_strassen beating r at n=1198.
+## Final Performance
+
+Here are the final results. The plot shows the performance of all created algorithms against R's built-in operator. For smaller matrices, the hybrid and parallel versions are fastest. R's default `%*%` is incredibly fast because it uses optimized BLAS/LAPACK libraries. However, as the matrix size increases, our `Parallel` implementation eventually beats R's native operator, with the crossover happening around n=1300.
 
 ```{r projection-plot, echo=FALSE, fig.cap="Projected vs. Actual Performance of Matrix Multiplication Algorithms"}
-# This code is a simplified version of vignettes/projection_plot.R
-# It uses pre-calculated data.
 library(ggplot2)
 library(dplyr)
 library(scales)
-
-benchmark_data <- data.frame(
-  size = rep(c(32, 64, 128, 256, 512, 1024, 2048), each = 5),
-  expr = rep(c("Naive_R", "Naive_C++", "Strassen", "Hybrid_Strassen", "Parallel"), times = 7),
-  mean_ms = c(
-    0.010, 0.327, 1.641, 0.044, 0.065,
-    0.077, 2.493, 11.38, 0.108, 0.111,
-    0.571, 19.09, 78.85, 0.697, 0.591,
-    4.285, 154.6, 564.2, 5.083, 3.648,
-    33.48, 1261, 3962, 35.10, 17.31,
-    272.1, 10227, 28779, 271.6, 98.47,
-    2231, 119661, 204754, 1945, 595.6
-  )
-)
-
-benchmark_data$time_sec <- benchmark_data$mean_ms / 1000
-
-ggplot(benchmark_data, aes(x = size, y = time_sec, color = expr, group = expr)) +
-  geom_line(linewidth = 1.2) +
-  geom_point(size = 4, alpha = 0.8) +
-  scale_x_log10(breaks = 2^(5:11), labels = scales::comma) +
-  scale_y_log10(labels = time_labels) +
-  labs(
-    title = "Performance of Matrix Multiplication Algorithms",
-    subtitle = "Mean execution time across various matrix sizes",
-    x = "Matrix Size (n x n) - Log Scale",
-    y = "Execution Time - Log Scale",
-    color = "Algorithm"
-  ) +
-  theme_minimal(base_size = 14)
+benchmark_data <- data.frame(size = rep(c(32, 64, 128, 256, 512, 1024, 2048), each = 5), expr = rep(c("Naive_R", "Naive_C++", "Strassen", "Hybrid_Strassen", "Parallel"), times = 7), mean_ms = c(0.01, 0.327, 1.641, 0.044, 0.065, 0.077, 2.493, 11.38, 0.108, 0.111, 0.571, 19.09, 78.85, 0.697, 0.591, 4.285, 154.6, 564.2, 5.083, 3.648, 33.48, 1261, 3962, 35.1, 17.31, 272.1, 10227, 28779, 271.6, 98.47, 2231, 119661, 204754, 1945, 595.6))
+benchmark_data$time_sec <- benchmark_data$mean_ms/1000
+ggplot(benchmark_data, aes(x = size, y = time_sec, color = expr, group = expr)) + geom_line(linewidth = 1.2) + geom_point(size = 4, alpha = 0.8) + scale_x_log10(breaks = 2^(5:11), labels = scales::comma) + scale_y_log10(labels = time_labels) + labs(title = "Performance of Matrix Multiplication Algorithms", subtitle = "Mean execution time across various matrix sizes", x = "Matrix Size (n x n) - Log Scale", y = "Execution Time - Log Scale", color = "Algorithm") + theme_minimal(base_size = 14)
 ```
 
-## Takeaways from using Gen AI
+## Takeaways from Using GenAI
 
-Through completing this project, I was able to get some key takeaways about working with gemini cli. I found that Gemini did a great job of helping to understand and optimize code, as well as being a great teacher for helping me learn how to code in C++ in the first place. However, I did find that for larger prompts, Gemini would often make assumptions that would lead to errors. I also had a repeated problem where it sometimes got stuck in a loop, like in this screenshot where it repeatedly kept trying the incorrect solution. This highlighted for me the need for human oversight and showed that sometimes, the easiest solution is to just restart that part of the code from scratch, which is what I did in this example.
+I found that Gemini did a great job of helping to understand and optimize code, and it was a great teacher for C++. However, for larger prompts, it would often make assumptions that led to errors. I also had a repeated problem where it sometimes got stuck in a loop, like in this screenshot where it repeatedly suggested an incorrect solution. This highlighted the need for human oversight and showed that sometimes, the easiest solution is to restart that part of the code from scratch.
 
-![](images/gemini-error-loop.png)
+![](gemini-error-loop.png)
 
 ## Conclusion & Future Improvements
 
-In conclusion, I was able to successfully build and optimize a high-performance R package that outperforms R's built-in matrix multiplication operator through the use of Gemini CLI as a debugging partner. The reason why I used Strassen’s Algorithm and not a different one with a lower time complexity is because Strassens is the matrix multiplication method with the lowest time complexity that is not a galactic algorithm. This means that for all matrix multiplication methods with a lower time complexity than strassens, we would only start to see performance gains for problems that are so large they never occur. For next steps, I would replace the naive C++ base case used in the thresholding algorithm with a call to a dedicated BLAS library to hopefully greatly decrease the execution time. I would also update the code to implement the Strassen-Winograd variant of Strassens algorithm, a version that requires less addition and subtraction and should theoretically reduce execution time.
+In conclusion, I successfully built and optimized an R package that outperforms R's built-in operator, using Gemini CLI as a development and debugging partner. I used Strassen's because it is not a "galactic" algorithm, meaning its performance gains are visible on practical problem sizes.
 
-![](images/omega-bounds.png)
+For next steps, I would replace the naive C++ base case with a call to a dedicated BLAS library and implement the Strassen-Winograd variant, which requires fewer additions and should theoretically reduce execution time.

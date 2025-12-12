@@ -124,7 +124,7 @@ This log documents my development of the StrassenR package, with a focus on how 
 
 *   **Progress:** I finalized the project by deploying the `pkgdown` website and writing the final report. I created the main tutorial vignette (`tutorial.Rmd`) by combining my previous logs and reports, and embedded the final benchmark plots directly into the page. After a lengthy debugging process, the website is now live and automatically updates via GitHub Actions.
 *   **Key Learning:** This week was a deep dive into CI/CD (Continuous Integration/Continuous Deployment). Setting up the GitHub Actions workflow was far more complex than I anticipated. It was a practical lesson in how build environments work, the importance of installing system dependencies (like OpenMP), and how to create platform-agnostic build configurations (`Makevars` for macOS vs. Linux).
-*   **Challenges/Blockers:** The main challenge was a multi-day battle with GitHub Actions. The website build failed repeatedly due to a series of cascading issues, starting with a missing OpenMP library, which then revealed a macOS-specific `Makevars` file, which then revealed a missing `devtools` dependency. Debugging this required methodically reading the build logs and fixing each issue one by one with the AI's help. It was a powerful, if frustrating, lesson in real-world deployment.
+*   **Challenges/Blockers:** The main challenge was dealing with GitHub Actions. The website build failed repeatedly due to a series of cascading issues, starting with a missing OpenMP library, which then revealed a macOS-specific `Makevars` file, which then revealed a missing `devtools` dependency. Debugging this required  reading the build logs and fixing each issue one by one.
 
 ---
 
@@ -138,8 +138,8 @@ This log documents my development of the StrassenR package, with a focus on how 
 
 ### Weekly Summary
 
-*   **Progress:** This week was dedicated to wrapping up the entire project. I submitted the final report, which summarized all the development, challenges, and results. I also created the presentation slides, outlining the project's motivation, the GenAI-assisted development process, and the key benchmark results. I finalized and rehearsed the 9-minute presentation multiple times to ensure smooth delivery and submitted the slides.
+*   **Progress:** This week was dedicated to wrapping up the entire project. I created the final report, which summarized all the development, challenges, and results. I also created the presentation slides, outlining the project's motivation, the GenAI-assisted development process, and the key benchmark results. I finalized and rehearsed the 9-minute presentation multiple times to ensure smooth delivery and submitted the slides.
 *   **Key Learning:** The biggest learning from this final week was the art of synthesis. Condensing weeks of complex development, debugging, and performance analysis into a concise, impactful presentation was a challenge. It forced me to distill the most important takeaways and effectively communicate the value of the GenAI workflow.
-*   **Challenges/Blockers:** The main challenge was fitting all the technical details and the narrative of the GenAI process into a strict 10-minute time limit
+*   **Challenges/Blockers:** The main challenge was fitting all the technical details and the narrative of the GenAI process into a 10-minute time limit
 
 ---
