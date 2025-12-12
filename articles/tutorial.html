@@ -83,11 +83,11 @@
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p>Hello everyone, my name is Elias Lindquist. For my project, I decided
-to implement Strassen’s algorithm for high-performance matrix
-multiplication in R, with the help of a generative AI partner, Gemini.
-This tutorial documents the entire journey, from initial concept to a
-fully optimized and parallelized R package.</p>
+<p>For my project, I decided to implement Strassen’s algorithm for
+high-performance matrix multiplication in R, with the help of a
+generative AI partner, Gemini CLI. This tutorial documents the entire
+journey, from initial concept to a fully optimized and parallelized R
+package.</p>
 <div class="section level3">
 <h3 id="the-gemini-md-context-file">The <code>GEMINI.md</code> Context File<a class="anchor" aria-label="anchor" href="#the-gemini-md-context-file"></a>
 </h3>
@@ -152,8 +152,8 @@ conform.</p>
 <h3 id="genai-workflow-1-r-to-c-translation">GenAI Workflow 1: R-to-C++ Translation<a class="anchor" aria-label="anchor" href="#genai-workflow-1-r-to-c-translation"></a>
 </h3>
 <p>To make this fast, I needed to implement it in C++ using Rcpp. As a
-C++ novice, I relied on Gemini. I first wrote the algorithm in pure R,
-then asked the AI to translate it.</p>
+C++ novice, I relied on Gemini CLI. I first wrote the algorithm in pure
+R, then asked the AI to translate it.</p>
 <p>The AI gave a great starting point for the R version. I then asked it
 to translate this R code to C++.</p>
 <p>This led to our first challenge. The AI’s direct translation produced
@@ -180,7 +180,7 @@ with no prior experience.</p>
 are three specific examples that show the different challenges faced and
 how they were solved.</p>
 <div class="section level5">
-<h5 id="case-study-1-the-const-correctness-error">Case Study 1: The <code>const</code> Correctness Error<a class="anchor" aria-label="anchor" href="#case-study-1-the-const-correctness-error"></a>
+<h5 id="the-const-correctness-error">The <code>const</code> Correctness Error:<a class="anchor" aria-label="anchor" href="#the-const-correctness-error"></a>
 </h5>
 <p><img src="error-const-correctness.png"></p>
 <ul>
@@ -203,7 +203,7 @@ error.</li>
 </ul>
 </div>
 <div class="section level5">
-<h5 id="case-study-2-the-openmp-linker-error">Case Study 2: The OpenMP Linker Error<a class="anchor" aria-label="anchor" href="#case-study-2-the-openmp-linker-error"></a>
+<h5 id="the-openmp-linker-error">The OpenMP Linker Error:<a class="anchor" aria-label="anchor" href="#the-openmp-linker-error"></a>
 </h5>
 <p><img src="error-openmp-linker.png"></p>
 <ul>
@@ -226,7 +226,7 @@ deployment pipeline.</li>
 </ul>
 </div>
 <div class="section level5">
-<h5 id="case-study-3-the-silent-logic-bug">Case Study 3: The Silent Logic Bug<a class="anchor" aria-label="anchor" href="#case-study-3-the-silent-logic-bug"></a>
+<h5 id="the-silent-logic-bug">The Silent Logic Bug:<a class="anchor" aria-label="anchor" href="#the-silent-logic-bug"></a>
 </h5>
 <p><img src="error-testthat-failure.png"></p>
 <ul>
@@ -283,9 +283,9 @@ parallelization. Using OpenMP, I could tell the compiler to execute
 these 7 tasks simultaneously across all available CPU cores. This
 required a custom <code>Makevars</code> file, which was a major
 challenge that required asking the AI for help.</p>
-<p>After several iterations, we created a <code>Makevars</code> file
-that worked on both macOS and Linux, a critical step for making the
-package portable.</p>
+<p>After several iterations, I created a <code>Makevars</code> file that
+worked on both macOS and Linux, a critical step for making the package
+portable.</p>
 </div>
 <div class="section level3">
 <h3 id="final-performance">Final Performance<a class="anchor" aria-label="anchor" href="#final-performance"></a>
@@ -321,8 +321,9 @@ easiest solution is to restart that part of the code from scratch.</p>
 <p>In conclusion, I successfully built and optimized an R package that
 outperforms R’s built-in operator, using Gemini CLI as a development and
 debugging partner. I used Strassen’s because it is not a “galactic”
-algorithm, meaning its performance gains are visible on practical
-problem sizes.</p>
+algorithm (while all the algorithms with a smaller timne complexity
+were), meaning its performance gains are visible on practical problem
+sizes.</p>
 <p>For next steps, I would replace the naive C++ base case with a call
 to a dedicated BLAS library and implement the Strassen-Winograd variant,
 which requires fewer additions and should theoretically reduce execution
