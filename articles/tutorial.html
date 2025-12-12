@@ -5,13 +5,13 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>StrassenR: A Tutorial • StrassenR</title>
+<title>StrassenR Tutorial: A GenAI-Driven Approach • StrassenR</title>
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="StrassenR: A Tutorial">
+<script src="../pkgdown.js"></script><meta property="og:title" content="StrassenR Tutorial: A GenAI-Driven Approach">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -52,7 +52,7 @@
       <a href="../articles/development-log.html">Development Log</a>
     </li>
     <li>
-      <a href="../articles/tutorial.html">StrassenR: A Tutorial</a>
+      <a href="../articles/tutorial.html">StrassenR Tutorial: A GenAI-Driven Approach</a>
     </li>
   </ul>
 </li>
@@ -70,7 +70,7 @@
       </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1 data-toc-skip>StrassenR: A Tutorial</h1>
+      <h1 data-toc-skip>StrassenR Tutorial: A GenAI-Driven Approach</h1>
             
       
 
@@ -81,87 +81,128 @@
     
     
 <div class="section level2">
-<h2 id="the-problem-with-matrix-multiplication-in-r">The Problem with Matrix Multiplication in R<a class="anchor" aria-label="anchor" href="#the-problem-with-matrix-multiplication-in-r"></a>
+<h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p>Matrix multiplication is a fundamental operation in almost every
-field of scientific computing, but it’s computationally expensive and
-can take a long amount of time to compute for larger matrices. The
-standard matrix multiplication algorithm that uses 3 nested loops has a
-time complexity of O(n³), which means that if you double the size of
-your matrices, the computation time increases by a factor of eight. As
-you can see from this plot of R’s built in matrix multiplication
-algorithm performance, this cubic growth quickly becomes a bottleneck.
-For large matrices, run times can become too long to be practical. Our
-goal is to break through this O(n³) wall.</p>
+<p>Hello everyone, my name is Elias Lindquist. For my project, I decided
+to implement Strassen’s algorithm for high-performance matrix
+multiplication in R, with the help of a generative AI partner, Gemini.
+This tutorial documents the entire journey, from initial concept to a
+fully optimized and parallelized R package.</p>
+<div class="section level3">
+<h3 id="the-gemini-md-context-file">The <code>GEMINI.md</code> Context File<a class="anchor" aria-label="anchor" href="#the-gemini-md-context-file"></a>
+</h3>
+<p>To make my collaboration with the AI as effective as possible, I used
+a <code>GEMINI.md</code> file. This file acted as a “system prompt” or a
+set of standing orders for the AI. It ensured the AI always remembered
+the project’s goal, my persona as a C++ novice, and the fact that this
+tutorial was a key deliverable.</p>
+<p>Here is the exact content of the file:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu"># Project: StrassenR (Biostatistics 615 Final Project)</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>You are an expert AI assistant specializing in R, Rcpp, and C++. You are helping me build an R package from scratch.</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="fu">## 1. Project Context</span></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="ss">* </span>**Project Goal:** To create an R package named 'StrassenR'.</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="ss">* </span>**Core Task:** Implement Strassen's fast matrix multiplication algorithm.</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="ss">* </span>**Tech Stack:** R, C++, and Rcpp (for high-performance C++ integration with R).</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="ss">* </span>**Related Packages:** We will likely use <span class="in">`devtools`</span>, <span class="in">`roxygen2`</span>, and <span class="in">`testthat`</span> for package building, documentation, and testing.</span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a><span class="fu">## 2. My Persona &amp; Your Role</span></span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a><span class="ss">* </span>I am a student who is proficient in R.</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a><span class="ss">* </span>**IMPORTANT:** I am **new to C++**. Please explain C++ concepts, syntax, and errors clearly and simply. Assume I have no prior C++ knowledge.</span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="ss">* </span>When you provide C++ code, please include comments explaining what each part does.</span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a><span class="fu">## 3. Project Goal (GenAI Tutorial)</span></span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a><span class="ss">* </span>A key part of my project is to create a tutorial about using GenAI (you) for development.</span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a><span class="ss">* </span>When I ask, "How should I document this part?" or "What's a good summary of this step?", please provide a clear summary of our problem-solving process that I can use for my tutorial.</span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a><span class="ss">* </span>Be explicit about *why* a certain solution is chosen (e.g., "We are using pass-by-reference here for C++ performance to avoid copying the large matrices.").</span></code></pre></div>
+<hr>
+</div>
+</div>
+<div class="section level2">
+<h2 id="the-development-journey">The Development Journey<a class="anchor" aria-label="anchor" href="#the-development-journey"></a>
+</h2>
+<div class="section level3">
+<h3 id="the-problem-with-matrix-multiplication">The Problem with Matrix Multiplication<a class="anchor" aria-label="anchor" href="#the-problem-with-matrix-multiplication"></a>
+</h3>
+<p>Matrix multiplication is fundamental in scientific computing, but
+it’s expensive. The standard algorithm has a time complexity of O(n³),
+meaning if you double your matrix size, the computation time increases
+eightfold. This plot of R’s built-in <code>%*%</code> operator shows
+this cubic growth clearly. For large matrices, this becomes a major
+bottleneck. Our goal is to break this O(n³) wall.</p>
 <div class="figure">
 <img src="tutorial_files/figure-html/r-performance-plot-1.png" class="r-plt" alt="Performance of R's Native Matrix Multiplication" width="700"><p class="caption">
 Performance of R’s Native Matrix Multiplication
 </p>
 </div>
 </div>
-<div class="section level2">
-<h2 id="strassens-algorithm">Strassen’s Algorithm<a class="anchor" aria-label="anchor" href="#strassens-algorithm"></a>
-</h2>
-<p>The solution for this is Strassen’s algorithm. It’s a ‘divide and
-conquer’ method that rearranges the math to reduce the number of
-required multiplications from 8 in the standard matrix multiplication
-method down to 7. This single reduction in multiplication drops the
-complexity from O(n³) to approximately O(n^2.807) which is a huge
-theoretical improvement. However, it comes at the cost of more additions
-and subtractions, which creates overhead. This means that for small
-matrices Strassen’s can actually be slower than the naive method, which
-is a trade-off that becomes important later on. Finally Starssen’s
-algorithm is typically used for 2nx2n sized matrices but by padding
-these matrices with 0s we can get them to 2nx2n which then allows the
-algorithm to work.</p>
-<p><img src="images/strassen-formulas.png"></p>
+<div class="section level3">
+<h3 id="the-solution-strassens-algorithm">The Solution: Strassen’s Algorithm<a class="anchor" aria-label="anchor" href="#the-solution-strassens-algorithm"></a>
+</h3>
+<p>The solution is Strassen’s algorithm, a ‘divide and conquer’ method
+that reduces the required multiplications from 8 to 7. This single
+reduction drops the complexity to O(n^2.807). However, it adds overhead,
+making it slower for small matrices. The algorithm is typically used for
+2^n x 2^n matrices, but we can pad any matrix with zeros to make it
+conform.</p>
+<p><img src="strassen-formulas-1.png"><img src="strassen-formulas-2.png"><img src="strassen-formulas-3.png"></p>
 </div>
-<div class="section level2">
-<h2 id="genai-workflow-1-r-to-c-translation">GenAI Workflow 1: R-to-C++ Translation<a class="anchor" aria-label="anchor" href="#genai-workflow-1-r-to-c-translation"></a>
-</h2>
-<p>To make this run fast, I needed to implement it in C++ using rcpp,
-but since I had never coded in C++ before I decided to use Gemini CLI to
-implement any code I would need in that language. I started by writing
-the algorithm in pure R to get the logic right, and then asked the AI to
-translate it into C++. This led to the first challenge I faced with the
-AI. The AI’s direct translation produced C++ code that looked like R
-code, for example, using the plus operator for matrix addition which
-doesn’t exist in C++. This definitely helped me see early on that the
-gen AI can make incorrect assumptions, and its output needs to be
-heavily looked over and debugged.</p>
+<div class="section level3">
+<h3 id="genai-workflow-1-r-to-c-translation">GenAI Workflow 1: R-to-C++ Translation<a class="anchor" aria-label="anchor" href="#genai-workflow-1-r-to-c-translation"></a>
+</h3>
+<p>To make this fast, I needed to implement it in C++ using Rcpp. As a
+C++ novice, I relied on Gemini. I first wrote the algorithm in pure R,
+then asked the AI to translate it.</p>
+<blockquote>
+<p><strong>My Prompt:</strong> “I need to write a pure R function for
+Strassen’s algorithm. It should be recursive. Can you give me the basic
+structure, assuming the input matrices A and B are always square and
+have dimensions that are a power of 2?”</p>
+</blockquote>
+<p>The AI gave a great starting point. I then asked it to translate this
+R code to C++.</p>
+<blockquote>
+<p><strong>My Prompt:</strong> “Can you translate this R function into a
+C++ function using Rcpp?”</p>
+</blockquote>
+<p>This led to our first challenge. The AI’s direct translation produced
+C++ code that looked like R, using <code>+</code> for matrix addition,
+which doesn’t exist in C++. This showed me early on that the AI can make
+incorrect assumptions.</p>
 </div>
-<div class="section level2">
-<h2 id="genai-workflow-2-iterative-c-debugging">GenAI Workflow 2: Iterative C++ Debugging<a class="anchor" aria-label="anchor" href="#genai-workflow-2-iterative-c-debugging"></a>
-</h2>
-<p>This led to the core iterative workflow I used for working with
-generative AI for the entire project. As shown in the flowchart, the
-process was a simple loop:</p>
-<ol style="list-style-type: decimal">
-<li>First, I’d prompt the AI with a goal for what I wanted for a new
-section of code</li>
-<li>Then, I’d generate and test the code it gave me.</li>
-<li>I’d verify if it worked and produced the right result.</li>
-<li>If not, I would go back to the AI with the new error message.</li>
-</ol>
-<p>This ‘call and response’ cycle was incredibly effective for me.
-Because I initially instructed gemini cli in its md file to act as a
-teacher and explain all C++ code it produced for me, this turned
-compiler errors into learning moments for me, allowing me to build and
-understand complex C++ code with no prior experience.</p>
-<p><img src="images/debugging-flowchart.png"></p>
-<p><img src="images/gemini-error-loop.png"></p>
+<div class="section level3">
+<h3 id="genai-workflow-2-iterative-debugging">GenAI Workflow 2: Iterative Debugging<a class="anchor" aria-label="anchor" href="#genai-workflow-2-iterative-debugging"></a>
+</h3>
+<p>This led to the core iterative workflow I used for the project. The
+process was a simple loop: prompt with a goal, test the code, and if it
+failed, return to the AI with the error message.</p>
+<blockquote>
+<p><strong>My Prompt:</strong> “I got a compiler error:
+<code>error: invalid operands to binary expression ('const NumericMatrix' and 'const NumericMatrix')</code>.
+How do I fix this?”</p>
+</blockquote>
+<p>This ‘call and response’ cycle, guided by the <code>GEMINI.md</code>
+file’s instruction to “act as a teacher,” turned compiler errors into
+learning moments, allowing me to build and understand complex C++ code
+with no prior experience.</p>
+<p><img src="debugging-flowchart.png"></p>
 </div>
-<div class="section level2">
-<h2 id="the-hybrid-algorithm">The Hybrid Algorithm<a class="anchor" aria-label="anchor" href="#the-hybrid-algorithm"></a>
-</h2>
+<div class="section level3">
+<h3 id="optimization-1-the-hybrid-algorithm">Optimization 1: The Hybrid Algorithm<a class="anchor" aria-label="anchor" href="#optimization-1-the-hybrid-algorithm"></a>
+</h3>
 <p>Strassen’s overhead makes it inefficient for small matrices. To solve
-this, I implemented a ‘hybrid’ algorithm. The logic this algorithm uses
-is if the matrix size is above a certain THRESHOLD, we use Strassen’s
-method. But if it’s smaller than the threshold, we switch to a fast,
-standard C++ loop to avoid time loss from Strassen’s overhead. To find
-the best THRESHOLD, I benchmarked the algorithm at various matrix sizes
-from 2^4 to 2^8. From the benchmark I found that the optimal crossover
-point was 64.</p>
+this, I implemented a ‘hybrid’ algorithm that switches to a fast,
+standard C++ loop for matrices below a certain <code>THRESHOLD</code>.
+To find the best threshold, I prompted the AI:</p>
+<blockquote>
+<p><strong>My Prompt:</strong> “I need to find the optimal crossover
+threshold for my hybrid algorithm. Can you write an R script using the
+<code>microbenchmark</code> package to test thresholds of 16, 32, 64,
+128, and 256 for a 1024x1024 matrix and plot the results?”</p>
+</blockquote>
+<p>The benchmark found the optimal crossover point was
+<strong>64</strong>.</p>
 <pre><code><span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
 <span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
@@ -176,77 +217,65 @@ Optimal Crossover Threshold for Hybrid Algorithm
 </p>
 </div>
 </div>
-<div class="section level2">
-<h2 id="parallelism-with-openmp">Parallelism with OpenMP<a class="anchor" aria-label="anchor" href="#parallelism-with-openmp"></a>
-</h2>
-<p>The final optimization was to introduce parallelism, which is the
-simultaneous execution of multiple calculations or processes. The 7
-recursive calls in Strassen’s algorithm are completely independent of
-each other, making them a perfect target for parallelization. Using a
-library called OpenMP, I was able to produce C++ code that tells the
-compiler to execute these 7 tasks simultaneously across all available
-CPU cores as opposed to the single core which is what R will normally
-do. As the diagram shows, this turns a sequential process into a
-parallel one, significantly reducing the total execution time for large
-matrices.</p>
-<p><img src="images/openmp-diagram.png"></p>
+<div class="section level3">
+<h3 id="optimization-2-parallelism-with-openmp">Optimization 2: Parallelism with OpenMP<a class="anchor" aria-label="anchor" href="#optimization-2-parallelism-with-openmp"></a>
+</h3>
+<p>The final optimization was to introduce parallelism. The 7 recursive
+calls in Strassen’s are independent, making them perfect for
+parallelization. Using OpenMP, I could tell the compiler to execute
+these 7 tasks simultaneously across all available CPU cores. This
+required a custom <code>Makevars</code> file, which was a major
+challenge.</p>
+<blockquote>
+<p><strong>My Prompt:</strong> “I want to use OpenMP to parallelize my
+Rcpp code. How do I create a <code>src/Makevars</code> file on macOS to
+link against the OpenMP library installed by Homebrew?”</p>
+</blockquote>
+<p>After several iterations, we created a <code>Makevars</code> file
+that worked on both macOS and Linux, a critical step for making the
+package portable.</p>
 </div>
-<div class="section level2">
-<h2 id="final-functionsperformances">Final Functions/Performances<a class="anchor" aria-label="anchor" href="#final-functionsperformances"></a>
-</h2>
-<p>This is the final results. This plot shows the performance of all the
-versions of the matrix algorithms I created, as well as r’s built in
-matrix operator. From the graph we can see there are two tiers of speed
-specifically for smaller matrix sizes, with the default Strassens and
-naive C++ algorithms performing the slowest, and the hybrid, parallel,
-and default r algorithms performing the fastest. The reason that R’s
-default matrix multiplication is so fast is because it uses extremely
-optimized and fast BLAS/LAPACK libraries. Despite it being so highly
-optimized, I was able to get both the hybrid and parallel
-implementations of strassens algorithm both faster than R as the matrix
-size increased, with Parallel beating r at n=130 and hybrid_strassen
-beating r at n=1198.</p>
+<div class="section level3">
+<h3 id="final-performance">Final Performance<a class="anchor" aria-label="anchor" href="#final-performance"></a>
+</h3>
+<p>Here are the final results. The plot shows the performance of all
+created algorithms against R’s built-in operator. For smaller matrices,
+the hybrid and parallel versions are fastest. R’s default
+<code>%*%</code> is incredibly fast because it uses optimized
+BLAS/LAPACK libraries. However, as the matrix size increases, our
+<code>Parallel</code> implementation eventually beats R’s native
+operator, with the crossover happening around n=1300.</p>
 <div class="figure">
 <img src="tutorial_files/figure-html/projection-plot-1.png" class="r-plt" alt="Projected vs. Actual Performance of Matrix Multiplication Algorithms" width="700"><p class="caption">
 Projected vs. Actual Performance of Matrix Multiplication Algorithms
 </p>
 </div>
 </div>
-<div class="section level2">
-<h2 id="takeaways-from-using-gen-ai">Takeaways from using Gen AI<a class="anchor" aria-label="anchor" href="#takeaways-from-using-gen-ai"></a>
-</h2>
-<p>Through completing this project, I was able to get some key takeaways
-about working with gemini cli. I found that Gemini did a great job of
-helping to understand and optimize code, as well as being a great
-teacher for helping me learn how to code in C++ in the first place.
-However, I did find that for larger prompts, Gemini would often make
-assumptions that would lead to errors. I also had a repeated problem
-where it sometimes got stuck in a loop, like in this screenshot where it
-repeatedly kept trying the incorrect solution. This highlighted for me
-the need for human oversight and showed that sometimes, the easiest
-solution is to just restart that part of the code from scratch, which is
-what I did in this example.</p>
-<p><img src="images/gemini-error-loop.png"></p>
+<div class="section level3">
+<h3 id="takeaways-from-using-genai">Takeaways from Using GenAI<a class="anchor" aria-label="anchor" href="#takeaways-from-using-genai"></a>
+</h3>
+<p>I found that Gemini did a great job of helping to understand and
+optimize code, and it was a great teacher for C++. However, for larger
+prompts, it would often make assumptions that led to errors. I also had
+a repeated problem where it sometimes got stuck in a loop, like in this
+screenshot where it repeatedly suggested an incorrect solution. This
+highlighted the need for human oversight and showed that sometimes, the
+easiest solution is to restart that part of the code from scratch.</p>
+<p><img src="gemini-error-loop.png"></p>
 </div>
-<div class="section level2">
-<h2 id="conclusion-future-improvements">Conclusion &amp; Future Improvements<a class="anchor" aria-label="anchor" href="#conclusion-future-improvements"></a>
-</h2>
-<p>In conclusion, I was able to successfully build and optimize a
-high-performance R package that outperforms R’s built-in matrix
-multiplication operator through the use of Gemini CLI as a debugging
-partner. The reason why I used Strassen’s Algorithm and not a different
-one with a lower time complexity is because Strassens is the matrix
-multiplication method with the lowest time complexity that is not a
-galactic algorithm. This means that for all matrix multiplication
-methods with a lower time complexity than strassens, we would only start
-to see performance gains for problems that are so large they never
-occur. For next steps, I would replace the naive C++ base case used in
-the thresholding algorithm with a call to a dedicated BLAS library to
-hopefully greatly decrease the execution time. I would also update the
-code to implement the Strassen-Winograd variant of Strassens algorithm,
-a version that requires less addition and subtraction and should
-theoretically reduce execution time.</p>
-<p><img src="images/omega-bounds.png"></p>
+<div class="section level3">
+<h3 id="conclusion-future-improvements">Conclusion &amp; Future Improvements<a class="anchor" aria-label="anchor" href="#conclusion-future-improvements"></a>
+</h3>
+<p>In conclusion, I successfully built and optimized an R package that
+outperforms R’s built-in operator, using Gemini CLI as a development and
+debugging partner. I used Strassen’s because it is not a “galactic”
+algorithm, meaning its performance gains are visible on practical
+problem sizes.</p>
+<p>For next steps, I would replace the naive C++ base case with a call
+to a dedicated BLAS library and implement the Strassen-Winograd variant,
+which requires fewer additions and should theoretically reduce execution
+time.</p>
+</div>
 </div>
   </div>
 
