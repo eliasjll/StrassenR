@@ -13,10 +13,18 @@ This log documents my development of the StrassenR package, with a focus on how 
 *   **Goal 4:** Create and structure this development log.
 
 ### Weekly Summary
-
 *   **Progress:** I got all the initial project setup goals done this week. I pushed the project to GitHub, confirmed the R package structure was correct, and installed the necessary tools.
 *   **Key Learning:** To make sure my C++ compiler was working with R, I had the AI generate a simple 'Hello, World!' test, which compiled and ran perfectly. The AI was helpful for getting the specific git and R commands right, which let me get the environment set up quickly and confirm everything was working.
 *   **Challenges/Blockers:** I didn't run into any significant blockers this week; the setup process was smooth.
+
+### Key GenAI Prompt(s)
+> **Goal 1:** "I have a local git repository for my R package project. What are the `git` commands to create a new public repository on GitHub named 'StrassenR' and push my existing code to it?"
+
+> **Goal 2:** "I'm building an R package that will use Rcpp. Can you confirm if my directory structure (`R/`, `src/`) is correct and give me the R command to install `devtools` and `Rcpp`?"
+
+> **Goal 3:** "How can I write a minimal 'Hello, World!' C++ function with Rcpp and run it in my R console to verify that my toolchain is configured correctly?"
+
+> **Goal 4:** "I need to keep a development log in a file called `DEVLOG.md`. Can you create a Markdown template for a weekly log entry that includes sections for goals, progress, and key learnings?"
 
 ---
 
@@ -27,10 +35,14 @@ This log documents my development of the StrassenR package, with a focus on how 
 *   **Goal 2:** Implement a pure R version of Strassen's algorithm, focusing on the recursive logic for the "perfect" case (2^n * 2^n matrices).
 
 ### Weekly Summary
-
 *   **Progress:** I implemented the first two core functions in pure R: `naive_multiply` as a simple O(n³) baseline, and `strassen_r` for the recursive logic. I tested both against R's built-in `%*%` and confirmed they were correct for small matrices.
 *   **Key Learning:** I asked the AI for help structuring the `strassen_r` function for the simplified case of power-of-two square matrices. It gave me a great starting point that laid out the main steps: partitioning the matrices, calculating the 7 products recursively, and then combining the results. This was a big help in getting the core logic down.
 *   **Challenges/Blockers:** No major blockers. Focusing on the "perfect" case for the Strassen implementation made it much easier to get started without worrying about edge cases like padding.
+
+### Key GenAI Prompt(s)
+> **Goal 1:** "Can you write a simple R function named `naive_multiply` that takes two matrices, A and B, and multiplies them using three nested for-loops?"
+
+> **Goal 2:** "I need to write a pure R function for Strassen’s algorithm. It should be recursive. Can you give me the basic structure, assuming the input matrices A and B are always square and have dimensions that are a power of 2?"
 
 ---
 
@@ -42,10 +54,16 @@ This log documents my development of the StrassenR package, with a focus on how 
 *   **Goal 3:** Document the AI prompts and the iterative debugging process.
 
 ### Weekly Summary
-
 *   **Progress:** I successfully translated the R Strassen function into C++ using Rcpp. After a lot of debugging, the C++ version now compiles and runs correctly for the simple case.
 *   **Key Learning:** This week was a great lesson in the differences between R and C++. The AI's first direct translation failed because it wrote C++ code as if it were R, using `+` for matrix addition and R-style `[]` subsetting. This was a good example of an AI "hallucination." The real work was in the debugging cycle: I'd get a compiler error, feed it back to the AI, and we'd work through it. This process led me to write my own C++ helper functions for matrix math and use manual loops for partitioning.
 *   **Challenges/Blockers:** The main challenge was getting the first C++ version to compile. The AI's initial, incorrect assumptions about C++ syntax meant I had to guide it through the debugging process. It was a good reminder of the need for human oversight.
+
+### Key GenAI Prompt(s)
+> **Goal 1:** "Can you translate this pure R Strassen function into a C++ function using Rcpp?"
+
+> **Goal 2:** "I got a compiler error: `error: invalid operands to binary expression ('const NumericMatrix' and 'const NumericMatrix')`. How do I fix this in C++?"
+
+> **Goal 3:** "My R package build is failing with a '.Call() not available' error, even though the C++ code compiles. How can I diagnose if the problem is my C++ code or the R package build system itself?"
 
 ---
 
@@ -57,10 +75,14 @@ This log documents my development of the StrassenR package, with a focus on how 
 *   **Goal 3:** Write and submit the project progress report.
 
 ### Weekly Summary
-
 *   **Progress:** I successfully generalized the C++ Strassen implementation to handle any matrix size, including non-square matrices. This involved creating a wrapper function that pads the matrices with zeros to the next power of two, runs the core recursive algorithm, and then trims the result back to the correct dimensions. I also completed and submitted my progress report.
 *   **Key Learning:** This week was about making the "textbook" algorithm practical. I learned how to implement the padding/trimming logic, which is essential for making Strassen's algorithm a useful, general-purpose tool. It was a good lesson in how theoretical algorithms need extra engineering to become robust.
 *   **Challenges/Blockers:** The main challenge was getting the indexing correct while copying the original matrices into the larger, padded versions and then extracting the final result. It was very easy to make off-by-one errors, and I had to write several tests to find and fix these bugs to ensure the output was numerically accurate.
+
+### Key GenAI Prompt(s)
+> **Goal 1:** "My C++ Strassen function only works for square matrices with power-of-two dimensions. How can I modify it to handle arbitrary and non-square matrices? I think I need a wrapper function that pads the matrices with zeros to the next power of two, calls the recursive function, and then trims the result."
+
+> **Goal 2:** "I need to write a test to ensure my generalized Strassen function is numerically accurate. Can you show me how to use the `testthat` package to compare the output of my function with R's native `%*%` operator for a non-square matrix?"
 
 ---
 
@@ -69,14 +91,19 @@ This log documents my development of the StrassenR package, with a focus on how 
 ### Goals for this Week:
 *   **Goal 1:** Implement a fast, baseline C++ naive multiply function (`naive_cpp_multiply`).
 *   **Goal 2:** Modify the Strassen Rcpp function to use a `THRESHOLD` and switch to the naive C++ function for base cases.
-*   **Goal 3:** Write a benchmarking script using the `microbenchmark` package.
-*   **Goal 4:** Run benchmarks to find the optimal crossover point for the threshold.
+*   **Goal 3 & 4:** Write a benchmarking script and run benchmarks to find the optimal crossover point.
 
 ### Weekly Summary
-
 *   **Progress:** I successfully implemented the hybrid version of the Strassen algorithm in C++. This involved first creating a baseline `naive_cpp_multiply` function, then modifying the main Strassen function to call it for sub-problems smaller than a given `THRESHOLD`. I then wrote the `threshold_tuning_plot.R` script to benchmark the performance across different thresholds and found that **64** was the optimal crossover point for a 1024x1024 matrix.
 *   **Key Learning:** This week was all about performance tuning. Using the `microbenchmark` package was essential for getting reliable timing data. The results clearly showed the U-shaped performance curve I was expecting, which validated the theory that a hybrid approach is necessary. It was satisfying to see the data prove that for small matrices, the overhead of Strassen's recursion is more costly than a simple, brute-force loop.
 *   **Challenges/Blockers:** The main challenge was structuring the benchmarking script to loop through the different thresholds and capture the results cleanly. It took a few tries to get the `ggplot2` code right to automatically highlight the optimal point on the graph.
+
+### Key GenAI Prompt(s)
+> **Goal 1:** "Can you write a simple C++ function using Rcpp named `naive_cpp_multiply` that takes two NumericMatrix objects and multiplies them using three nested for-loops?"
+
+> **Goal 2:** "How do I modify my recursive `strassen_recursive` C++ function to become a hybrid algorithm? I want to add a check at the top so that if the matrix size `n` is less than or equal to a `THRESHOLD`, it calls `naive_cpp_multiply` instead of recursing further."
+
+> **Goal 3 & 4:** "I need to find the optimal crossover threshold for my hybrid algorithm. Can you write an R script using the `microbenchmark` package to test thresholds of 16, 32, 64, 128, and 256 for a 1024x1024 matrix and plot the results using `ggplot2`?"
 
 ---
 
@@ -85,14 +112,19 @@ This log documents my development of the StrassenR package, with a focus on how 
 ### Goals for this Week:
 *   **Goal 1:** Create a `src/Makevars` file to enable OpenMP.
 *   **Goal 2:** Add OpenMP directives to parallelize the 7 recursive calls (M1-M7).
-*   **Goal 3:** Run final performance comparisons comparing all implemented algorithms.
-*   **Goal 4:** Generate plots to visualize the results and identify the final crossover point.
+*   **Goal 3 & 4:** Run final performance comparisons and generate plots to visualize the results.
 
 ### Weekly Summary
-
 *   **Progress:** I parallelized the hybrid algorithm using OpenMP. This involved creating a `src/Makevars` file to add the necessary compiler flags and then adding `#pragma omp` directives to the C++ code to execute the 7 recursive calls in parallel. I then ran a final, comprehensive benchmark of all algorithms and created the `projection_plot.R` script to visualize the results and calculate the final crossover points.
 *   **Key Learning:** Learning how to configure the build system for an external library like OpenMP was a major step. The `Makevars` file was critical, and it was impactful to see how a few lines of OpenMP directives could dramatically reduce the execution time by leveraging all available CPU cores. The final performance plot clearly shows the distinct performance tiers of each implementation.
 *   **Challenges/Blockers:** The `Makevars` file was tricky. The configuration is different for macOS (which I use locally) and Linux (which GitHub Actions uses), and this caused several build failures during the website deployment. It took a few iterations with the AI to create a conditional `Makevars` file that worked for both environments.
+
+### Key GenAI Prompt(s)
+> **Goal 1:** "I want to use OpenMP to parallelize my Rcpp code. How do I create a `src/Makevars` file on macOS to link against the OpenMP library installed by Homebrew?"
+
+> **Goal 2:** "Here is my C++ Strassen function. The seven recursive calls to calculate M1 through M7 are independent. Can you show me how to add OpenMP `#pragma` directives to execute these seven calls in parallel?"
+
+> **Goal 3 & 4:** "I need to create a final performance plot. Can you write an R script that benchmarks all four of my algorithms (Naive R, Naive C++, Hybrid, Parallel) and R's native `%*%` operator, and then uses `ggplot2` to plot their execution time on a log-log scale?"
 
 ---
 
@@ -101,18 +133,24 @@ This log documents my development of the StrassenR package, with a focus on how 
 ### Goals for this Week:
 *   **Goal 1:** Set up the GitHub Pages site for the final tutorial.
 *   **Goal 2:** Draft the initial sections (theory, complexity) and organize the development log.
-*   **Goal 3:** Convert all GenAI logs into the final GitHub Pages tutorial, adding benchmarking results and a code walkthrough.
-*   **Goal 4:** Refine the R package and write the final report document.
+*   **Goal 3:** Convert all GenAI logs into the final GitHub Pages tutorial.
+*   **Goal 4:** Write the final report document.
 
 ### Weekly Summary
-
 *   **Progress:** I finalized the project by deploying the `pkgdown` website and writing the final report. I created the main tutorial vignette (`tutorial.Rmd`) by combining my previous logs and reports, and embedded the final benchmark plots directly into the page. After a lengthy debugging process, the website is now live and automatically updates via GitHub Actions.
 *   **Key Learning:** This week was a deep dive into CI/CD (Continuous Integration/Continuous Deployment). Setting up the GitHub Actions workflow was far more complex than I anticipated. It was a practical lesson in how build environments work, the importance of installing system dependencies (like OpenMP), and how to create platform-agnostic build configurations (`Makevars` for macOS vs. Linux).
 *   **Challenges/Blockers:** The main challenge was a multi-day battle with GitHub Actions. The website build failed repeatedly due to a series of cascading issues, starting with a missing OpenMP library, which then revealed a macOS-specific `Makevars` file, which then revealed a missing `devtools` dependency. Debugging this required methodically reading the build logs and fixing each issue one by one with the AI's help. It was a powerful, if frustrating, lesson in real-world deployment.
 
+### Key GenAI Prompt(s)
+> **Goal 1:** "I want to build a `pkgdown` site and deploy it using GitHub Actions. Can you give me the YAML code for a basic workflow file to do this?"
+
+> **Goal 2 & 3:** "I need to create the main tutorial page for my website. Can you take the content from my `FINAL_REPORT.md` and my `DEVLOG.md` and merge them into a single, comprehensive vignette file named `tutorial.Rmd`?"
+
+> **Goal 4:** "I'm trying to deploy my `pkgdown` site using GitHub Actions, but the build is failing with the error `-lomp: not found`. My `Makevars` file works on my local macOS machine. What's wrong with the Linux build environment and how do I fix the workflow?"
+
 ---
 
-## Final Week: Dec 1 - 7 | Project Wrap-up and Presentation
+## Presentation Week: Dec 1 - 7
 
 ### Goals for this Week:
 *   **Goal 1:** Submit Final Report.
@@ -127,3 +165,16 @@ This log documents my development of the StrassenR package, with a focus on how 
 *   **Challenges/Blockers:** The main challenge was fitting all the technical details and the narrative of the GenAI process into a strict 10-minute time limit
 
 ---
+
+## Week 8: Dec 8 - 12 | Website Content and Final Touches
+
+### Goals for this Week:
+*   **Goal 1:** Consolidate all project documentation (reports, logs) into a single, comprehensive tutorial vignette.
+*   **Goal 2:** Create and add visual aids (diagrams, error screenshots) to the tutorial to improve clarity.
+*   **Goal 3:** Structure the `pkgdown` website's navigation and homepage (`README.md`) for a clean user experience.
+*   **Goal 4:** Write the final project report and presentation slides.
+
+### Weekly Summary
+*   **Progress:** This week was focused on content creation and polishing the final product. I merged the `FINAL_REPORT.md` and `DEVLOG.md` into a single, polished tutorial vignette (`tutorial.Rmd`). I also created and added all the visual aids, including diagrams for the algorithms and screenshots of the key debugging moments. I updated the `README.md` to serve as a proper homepage with a link to the full website.
+*   **Key Learning:** The main lesson was in documentation and communication. Turning a technical development log into a clear, narrative-driven tutorial required a different mindset. It was a good exercise in explaining complex technical challenges (like the `const` correctness and linker errors) to a broader audience. Creating the visual aids was crucial for making these explanations effective.
+*   **Challenges/Blockers:** The main challenge was ensuring all the image paths were correct for the `pkgdown` build process. It took a few tries to get the paths right and understand that `pkgdown` has specific conventions for handling images in vignettes.

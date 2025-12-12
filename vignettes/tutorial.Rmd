@@ -66,37 +66,57 @@ ggplot(r_perf_data, aes(x = size, y = time_sec)) + geom_line(color = "blue", lin
 
 The solution is Strassen's algorithm, a 'divide and conquer' method that reduces the required multiplications from 8 to 7. This single reduction drops the complexity to O(n^2.807). However, it adds overhead, making it slower for small matrices. The algorithm is typically used for 2^n x 2^n matrices, but we can pad any matrix with zeros to make it conform.
 
-![](strassen-formulas-1.png)
-![](strassen-formulas-2.png)
-![](strassen-formulas-3.png)
+![](strassen-formulas1.png)
+![](strassen-formulas2.png)
+![](strassen-formulas3.png)
 
 ## GenAI Workflow 1: R-to-C++ Translation
 
 To make this fast, I needed to implement it in C++ using Rcpp. As a C++ novice, I relied on Gemini. I first wrote the algorithm in pure R, then asked the AI to translate it.
 
-> **My Prompt:** "I need to write a pure R function for Strassen’s algorithm. It should be recursive. Can you give me the basic structure, assuming the input matrices A and B are always square and have dimensions that are a power of 2?"
-
-The AI gave a great starting point. I then asked it to translate this R code to C++.
-
-> **My Prompt:** "Can you translate this R function into a C++ function using Rcpp?"
+The AI gave a great starting point for the R version. I then asked it to translate this R code to C++.
 
 This led to our first challenge. The AI's direct translation produced C++ code that looked like R, using `+` for matrix addition, which doesn't exist in C++. This showed me early on that the AI can make incorrect assumptions.
 
 ## GenAI Workflow 2: Iterative Debugging
 
-This led to the core iterative workflow I used for the project. The process was a simple loop: prompt with a goal, test the code, and if it failed, return to the AI with the error message.
-
-> **My Prompt:** "I got a compiler error: `error: invalid operands to binary expression ('const NumericMatrix' and 'const NumericMatrix')`. How do I fix this?"
+This led to the core iterative workflow I used for the project. The process was a simple loop: prompt with a goal, test the code, and if it failed, return to the AI with the error message. A key prompt during this phase was asking for help with a specific compiler error.
 
 This 'call and response' cycle, guided by the `GEMINI.md` file's instruction to "act as a teacher," turned compiler errors into learning moments, allowing me to build and understand complex C++ code with no prior experience.
 
 ![](debugging-flowchart.png)
 
+### Debugging Examples
+
+The development process was filled with different kinds of bugs. Here are three specific examples that show the different challenges faced and how they were solved.
+
+#### Case Study 1: The `const` Correctness Error
+
+![](error-const-correctness.png)
+
+*   **How it Happened:** This C++ compiler error occurred when I passed a `const` (read-only) matrix to a helper function that expected a non-`const` (modifiable) matrix.
+*   **What it Means:** This is a C++ safety feature. The compiler stops you from accidentally changing data in a function that you promised would not be changed. It's a key concept for writing safe C++ code that doesn't have a direct parallel in R.
+*   **How it was Fixed:** The AI explained the concept of `const` correctness. The fix was to ensure the helper function also declared its parameter as `const`, which corrected the function's "promise" to the compiler and resolved the error.
+
+#### Case Study 2: The OpenMP Linker Error
+
+![](error-openmp-linker.png)
+
+*   **How it Happened:** After adding OpenMP for parallelism, the code worked on my Mac but failed during the website deployment on GitHub Actions with a `-lomp: not found` error.
+*   **What it Means:** This error means the GitHub Actions runner, which uses Linux, couldn't find the OpenMP library. My `Makevars` file, which tells the compiler how to find libraries, was written only for my macOS setup.
+*   **How it was Fixed:** This is a classic cross-platform compatibility issue. With the AI's help, I wrote a conditional `Makevars` file that provides the correct compiler flags for both Linux and macOS, making the package portable and fixing the deployment pipeline.
+
+#### Case Study 3: The Silent Logic Bug
+
+![](error-testthat-failure.png)
+
+*   **How it Happened:** After implementing the padding logic for non-square matrices, the code compiled perfectly, but it was producing the wrong answers. A silent off-by-one error in an indexing loop was scrambling the results.
+*   **What it Means:** This is a logical bug that the compiler cannot catch. The code is syntactically valid, but the logic is flawed. The only way to find these errors is with rigorous testing.
+*   **How it was Fixed:** I prompted the AI to help me write a `testthat` script to compare my function's output against R's native `%*%` for various matrix sizes. The test immediately failed, as shown in the image. This failure allowed me to go back to the C++ code and, with the AI's help, pinpoint and fix the indexing error.
+
 ## Optimization 1: The Hybrid Algorithm
 
-Strassen's overhead makes it inefficient for small matrices. To solve this, I implemented a 'hybrid' algorithm that switches to a fast, standard C++ loop for matrices below a certain `THRESHOLD`. To find the best threshold, I prompted the AI:
-
-> **My Prompt:** "I need to find the optimal crossover threshold for my hybrid algorithm. Can you write an R script using the `microbenchmark` package to test thresholds of 16, 32, 64, 128, and 256 for a 1024x1024 matrix and plot the results?"
+Strassen's overhead makes it inefficient for small matrices. To solve this, I implemented a 'hybrid' algorithm that switches to a fast, standard C++ loop for matrices below a certain `THRESHOLD`. To find the best threshold, I prompted the AI to write a benchmarking script.
 
 The benchmark found the optimal crossover point was **64**.
 
@@ -110,9 +130,7 @@ ggplot(threshold_data, aes(x = threshold, y = median_ms)) + geom_line(color = "b
 
 ## Optimization 2: Parallelism with OpenMP
 
-The final optimization was to introduce parallelism. The 7 recursive calls in Strassen's are independent, making them perfect for parallelization. Using OpenMP, I could tell the compiler to execute these 7 tasks simultaneously across all available CPU cores. This required a custom `Makevars` file, which was a major challenge.
-
-> **My Prompt:** "I want to use OpenMP to parallelize my Rcpp code. How do I create a `src/Makevars` file on macOS to link against the OpenMP library installed by Homebrew?"
+The final optimization was to introduce parallelism. The 7 recursive calls in Strassen's are independent, making them perfect for parallelization. Using OpenMP, I could tell the compiler to execute these 7 tasks simultaneously across all available CPU cores. This required a custom `Makevars` file, which was a major challenge that required asking the AI for help.
 
 After several iterations, we created a `Makevars` file that worked on both macOS and Linux, a critical step for making the package portable.
 
